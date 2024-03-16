@@ -1,13 +1,18 @@
 import Mathlib.LinearAlgebra.StdBasis
 import Mathlib.LinearAlgebra.TensorProduct.Basic
 import Mathlib.LinearAlgebra.TensorProduct.Basis
-import HopfAlgebra.HopfDefs
+import HopfAlgebra.Basic
 
 namespace SweedlerHopfAlgebra
+
+-- TODO: maybe not define it over Q from the start but keep
+-- ring arbitrary
 
 /- Sweedler's Hopf algebra is 4 dimensional, has a nilpotent
    element x, and a group-like g, so we will use e, x, g, gx
    to denote the basis vectors.
+   This follows Kassel "Quantum groups" Ch VIII.2 Example 2,
+   with the convention x -> g, y -> x
 -/
 inductive bas where
 | e : bas
@@ -17,6 +22,7 @@ inductive bas where
 deriving DecidableEq
 
 -- provide a proof that bas indeed has 4 elements
+-- TODO: Can this be done more easily?
 def isEquivFin4 : Equiv bas (Fin 4) :=
   {
     toFun := fun x ↦ match x with
@@ -43,12 +49,13 @@ def isEquivFin4 : Equiv bas (Fin 4) :=
   }
 
 -- and with that we can declare that bas is finite
-instance inst_finite_bas : Finite bas := Finite.intro isEquivFin4
+instance : Finite bas := Finite.intro isEquivFin4
 
 /- TODO: I wanted to do this with my own type via "abbrev sha := bas → ℚ",
    but then it forgets all properties and I was not able to reprove e.g.
    AddCommGroup, eg I failed with zsmul_zero' etc.
 -/
+-- sha = *S*weedler's *H*opf *a*lgebra
 abbrev sha := bas → ℚ
 
 -- this turns functions into a basis
@@ -61,11 +68,11 @@ noncomputable abbrev βg  := β bas.g
 noncomputable abbrev βgx  := β bas.gx
 
 
-/- It might be better to define algebra from scratch as
-   map A ⊗ A → A plus conditions, rather than a ring with
-   a map to the centre, which is how it is done in the
-   library (which will use semirings instead)
-   So let's try.
+/- I wanted to work in the setting where algebras are defined
+   as linear maps A ⊗ A → A plus conditions, rather than as a
+   ring with a map to the centre (which is how it is done in the
+   library).
+   TODO: Is the current version already pre-defined, too?
 -/
 
 
@@ -104,7 +111,7 @@ example : sha_mul_on_basis (bas.e , bas.e) = βe := by rfl
 
 /- and the corresponding linear map on the tensor product
    Note that sha ⊗[ℚ] sha → sha is also accepted here, but then
-   the below we cannot use that sha_mul is a linear map.
+   below we cannot use that sha_mul is a linear map.
 -/
 noncomputable def sha_mul : sha ⊗[ℚ] sha →ₗ[ℚ] sha :=
   Basis.constr ββ ℚ sha_mul_on_basis
@@ -115,7 +122,7 @@ theorem sha_mul_ββ_lemma : sha_mul ((β i) ⊗ₜ[ℚ] (β j)) = sha_mul_on_ba
     rw [← Basis.tensorProduct_apply, ← ββ]
     simp
 
-/- try it. TensorProduct.tmul R m n gives the tensor product
+/- TensorProduct.tmul R m n gives the tensor product
    on elements, it is abbreviated as m ⊗ₜ[R] n
    The dot •, \bu, is the scalar action. To access it directly
    one has to hunt it down through the type classes
@@ -123,7 +130,7 @@ theorem sha_mul_ββ_lemma : sha_mul ((β i) ⊗ₜ[ℚ] (β j)) = sha_mul_on_ba
    in SMul. This gives the 2nd version of the rhs below.
 -/
 
-example : sha_mul ( βg ⊗ₜ[ℚ] βx - βx ⊗ₜ[ℚ] βg ) = (2:Rat) • βgx
+example : sha_mul ( βg ⊗ₜ[ℚ] βx - βx ⊗ₜ[ℚ] βg ) = (2:ℚ) • βgx
 -- the dot is the action of ℚ on sha, in long form: = SMul.smul (2:ℚ) (β bas.gx:sha)
   := by
   calc
@@ -185,7 +192,7 @@ theorem sha_mul_assoc :
         repeat simp [sha_mul_on_basis];
       )
 -/
-/- surely somewhere there should be R -> M as a linear map
+/- TODO: surely somewhere there should be R -> M as a linear map
    which takes 1 in R to some basis vector b in M predefined
 -/
 noncomputable def sha_unit : ℚ →ₗ[ℚ] sha := {
@@ -209,22 +216,6 @@ noncomputable def sha_g : ℚ →ₗ[ℚ] sha := {
     dsimp
     rw [mul_smul (a:Rat) (b:Rat) βg]
   }
-
---#check (TensorProduct.lid ℚ sha).invFun
-
-/- surely this exists? Ah, is done automatically
-   by coersion, but I do not fully understand the
-   mechanism. But simp can deal with it then.
-
-theorem linfun_from_linequiv {R:Type u1} [Semiring R]
-  [AddCommMonoid M] [Module R M] [AddCommMonoid N] [Module R N]
-  (f : M ≃ₗ[R] N)
-  : M →ₗ[R] N := {
-    toFun := f.toFun
-    map_add' := f.map_add'
-    map_smul' := f.map_smul'
-  }
--/
 
 theorem sha_one_mul :
   ( (sha_mul : sha ⊗[ℚ] sha →ₗ[ℚ] sha)
@@ -270,7 +261,6 @@ noncomputable def sha_comul_on_basis : bas → sha ⊗[ℚ] sha := fun a ↦
   | bas.g => βg ⊗ₜ[ℚ] βg
   | bas.gx => βg ⊗ₜ[ℚ] βgx + βgx ⊗ₜ[ℚ] βe
 
-
 noncomputable def sha_comul : sha  →ₗ[ℚ]  sha ⊗[ℚ] sha :=
   Basis.constr β ℚ sha_comul_on_basis
 
@@ -284,11 +274,17 @@ noncomputable def sha_counit_on_basis : bas → ℚ := fun a ↦
 noncomputable def sha_counit : sha  →ₗ[ℚ] ℚ :=
   Basis.constr β ℚ sha_counit_on_basis
 
+/-
+  this checks that the definition of the coproduct indeed
+  satisfies Δ(g)Δ(x) = Δ(gx)
+  TODO: Maybe the rules used below should be added to the
+  simplifier?
+-/
 example :
-  ( mulAA ∘ₗ (tensor_f_g sha_comul sha_comul) ) (βg ⊗ₜ[ℚ] βx)
+  ( mulAA ∘ₗ (tensor_hom sha_comul sha_comul) ) (βg ⊗ₜ[ℚ] βx)
   = sha_comul βgx
   := by
-    simp [tensor_f_g,sha_comul,sha_comul_on_basis,
+    simp [tensor_hom,sha_comul,sha_comul_on_basis,
       TensorProduct.tmul_add,mulAA_tmul,AlgebraTens.mul,
       sha_mul_ββ_lemma,sha_mul_on_basis]
 
@@ -338,7 +334,7 @@ theorem sha_comul_coassoc :
     match i with
     | bas.e => simp [sha_comul_on_basis]
     | bas.x => simp [sha_comul_on_basis,TensorProduct.add_tmul,TensorProduct.tmul_add]; rw [add_assoc]
-    | bas.g => simp [sha_comul_on_basis] --,TensorProduct.add_tmul,TensorProduct.tmul_add]; sorry
+    | bas.g => simp [sha_comul_on_basis]
     | bas.gx => simp [sha_comul_on_basis,TensorProduct.add_tmul,TensorProduct.tmul_add]; rw [add_assoc]
 
 
@@ -363,6 +359,7 @@ noncomputable def sha_anti : sha →ₗ[ℚ] sha :=
   Basis.constr β ℚ sha_anti_on_basis
 
 
+-- the map x ↦ g x g⁻¹ , but here g⁻¹ = g.
 noncomputable def sha_g_conj : sha →ₗ[ℚ] sha :=
   (sha_mul : sha ⊗[ℚ] sha →ₗ[ℚ] sha)
   ∘ₗ
@@ -389,7 +386,7 @@ example : sha_anti ∘ₗ sha_anti = sha_g_conj
 theorem sha_comul_mul :
   ( mulAA : (sha ⊗[ℚ] sha) ⊗[ℚ] (sha ⊗[ℚ] sha) →ₗ[ℚ] sha ⊗[ℚ] sha )
   ∘ₗ
-  ( tensor_f_g sha_comul sha_comul : sha ⊗[ℚ] sha →ₗ[ℚ] (sha ⊗[ℚ] sha) ⊗[ℚ] (sha ⊗[ℚ] sha) )
+  ( tensor_hom sha_comul sha_comul : sha ⊗[ℚ] sha →ₗ[ℚ] (sha ⊗[ℚ] sha) ⊗[ℚ] (sha ⊗[ℚ] sha) )
   =
   ( sha_comul : sha →ₗ[ℚ] sha ⊗[ℚ] sha )
   ∘ₗ
@@ -397,7 +394,7 @@ theorem sha_comul_mul :
   := by
     apply Basis.ext ββ
     intro (a,b)
-    simp [tensor_f_g,ββ,sha_mul_ββ_lemma]
+    simp [tensor_hom,ββ,sha_mul_ββ_lemma]
     cases a <;> cases b <;>
       repeat simp [sha_mul_on_basis,sha_comul,
           sha_comul_on_basis,
@@ -414,14 +411,14 @@ theorem sha_comul_unit :
   ∘ₗ
   ( sha_unit : ℚ →ₗ[ℚ] sha )
   =
-  ( (tensor_f_g sha_unit sha_unit) : ℚ ⊗[ℚ] ℚ →ₗ[ℚ] sha ⊗[ℚ] sha )
+  ( (tensor_hom sha_unit sha_unit) : ℚ ⊗[ℚ] ℚ →ₗ[ℚ] sha ⊗[ℚ] sha )
   ∘ₗ
   ( LinearEquiv.symm (TensorProduct.lid ℚ ℚ) : ℚ →ₗ[ℚ] ℚ⊗[ℚ] ℚ )
   := by
     apply Basis.ext βℚ
     intro i
     rw [βℚ,Basis.singleton_apply]
-    simp [tensor_f_g,sha_unit,sha_comul,sha_comul_on_basis]
+    simp [tensor_hom,sha_unit,sha_comul,sha_comul_on_basis]
 
 theorem sha_counit_mul :
   ( sha_counit : sha →ₗ[ℚ] ℚ )
@@ -430,11 +427,11 @@ theorem sha_counit_mul :
   =
   ( TensorProduct.lid ℚ ℚ : ℚ ⊗[ℚ] ℚ →ₗ[ℚ] ℚ )
   ∘ₗ
-  ( (tensor_f_g sha_counit sha_counit) : sha ⊗[ℚ] sha →ₗ[ℚ] ℚ ⊗[ℚ] ℚ )
+  ( (tensor_hom sha_counit sha_counit) : sha ⊗[ℚ] sha →ₗ[ℚ] ℚ ⊗[ℚ] ℚ )
   := by
     apply Basis.ext ββ
     intro (a,b)
-    simp [tensor_f_g,ββ,sha_mul_ββ_lemma]
+    simp [tensor_hom,ββ,sha_mul_ββ_lemma]
     cases a <;> cases b <;>
       simp [sha_counit,sha_counit_on_basis,sha_mul_on_basis]
 
