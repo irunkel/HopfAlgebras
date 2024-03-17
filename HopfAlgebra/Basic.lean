@@ -7,6 +7,30 @@ namespace Hopf
 -- mathlib docu says I should do this to use ⊗
 open scoped TensorProduct
 
+/- --- Linear algebra helper definitions --- -/
+
+/- shortcut for tensor product of two linear maps -/
+-- TODO: This is probably in the library and I missed it
+noncomputable def tensor_hom {R:Type} {M1 M2 N1 N2:Type}
+  [CommSemiring R]
+  [AddCommMonoid M1]
+  [AddCommMonoid M2]
+  [AddCommMonoid N1]
+  [AddCommMonoid N2]
+  [Module R M1]
+  [Module R M2]
+  [Module R N1]
+  [Module R N2]
+  (f : M1 →ₗ[R] N1)
+  (g : M2 →ₗ[R] N2)
+  :
+  M1 ⊗[R] M2 →ₗ[R] N1 ⊗[R] N2
+  := (
+    (LinearMap.lTensorHom N1 g : N1 ⊗[R] M2 →ₗ[R] N1 ⊗[R] N2)
+    ∘ₗ
+    (LinearMap.rTensorHom M2 f : M1 ⊗[R] M2 →ₗ[R] N1 ⊗[R] M2)
+  )
+
 /- shortcuts for unitors -/
 
 noncomputable def unitor_left
@@ -28,6 +52,13 @@ noncomputable def unitor_right_inv
   {R:Type} (M:Type)
   [CommSemiring R] [AddCommMonoid M] [Module R M] :
   M →ₗ[R] M ⊗[R] R := LinearEquiv.symm (TensorProduct.rid R M)
+
+/- --- Algebra definition --- -/
+/- This defines an associative unital algebra in terms of
+   linear maps and tensor products (mathlib defines algebras
+   as rings with a map of a commutative ring to the center
+   instead).
+   TODO: Is this maybe already in mathlib, too? -/
 
 class AlgebraTens (R:Type) (A:Type)
   [CommSemiring R] [AddCommMonoid A] [Module R A] where
@@ -60,6 +91,8 @@ class AlgebraTens (R:Type) (A:Type)
     ∘ₗ (TensorProduct.assoc R A A A
         : (A ⊗[R] A) ⊗[R] A →ₗ[R] A ⊗[R] (A ⊗[R] A))
 
+/- --- Coalgebra definition --- -/
+/- This is basically the same as in mathlib -/
 
 class CoalgebraTens (R:Type) (A:Type)
   [CommSemiring R] [AddCommMonoid A] [Module R A] where
@@ -92,36 +125,15 @@ class CoalgebraTens (R:Type) (A:Type)
         : A ⊗[R] A →ₗ[R] A ⊗[R] (A ⊗[R] A))
     ∘ₗ (comul : A →ₗ[R] A ⊗[R] A)
 
-
--- Why is that not in the library? Maybe I missed it?
-noncomputable def tensor_hom {R:Type} {M1 M2 N1 N2:Type}
-  [CommSemiring R]
-  [AddCommMonoid M1]
-  [AddCommMonoid M2]
-  [AddCommMonoid N1]
-  [AddCommMonoid N2]
-  [Module R M1]
-  [Module R M2]
-  [Module R N1]
-  [Module R N2]
-  (f : M1 →ₗ[R] N1)
-  (g : M2 →ₗ[R] N2)
-  :
-  M1 ⊗[R] M2 →ₗ[R] N1 ⊗[R] N2
-  := (
-    (LinearMap.lTensorHom N1 g : N1 ⊗[R] M2 →ₗ[R] N1 ⊗[R] N2)
-    ∘ₗ
-    (LinearMap.rTensorHom M2 f : M1 ⊗[R] M2 →ₗ[R] N1 ⊗[R] M2)
-  )
-
 /-
   Just "def mulAA" Produced a compiler error
   "compiler IR check failed at 'Hopf.mulAA._rarg',
    error: unknown declaration 'TensorProduct.addCommMonoid'"
   This is a known issue
   https://github.com/leanprover/lean4/issues/1785
-  It just means that the definition has to be made non-computable
+  It just means that the definition has to be made noncomputable
 -/
+-- product on A ⊗ A
 noncomputable def mulAA {R:Type} {A:Type}
   [CommSemiring R] [AddCommMonoid A] [Module R A]
   [AlgebraTens R A] :
@@ -168,6 +180,7 @@ noncomputable def mulAA {R:Type} {A:Type}
 
   )
 
+-- mulAA on pure tensors : (a ⊗ b) * (c ⊗ d) = (a*c) ⊗ (b*d)
 theorem mulAA_tmul {R:Type} {A:Type}
   [CommSemiring R] [AddCommMonoid A] [Module R A]
   [AlgebraTens R A] (a b c d : A) :
@@ -177,7 +190,10 @@ theorem mulAA_tmul {R:Type} {A:Type}
   := by
     simp [mulAA,tensor_hom]
 
+/- --- Hopf algebra definition --- -/
 
+/- could have done bialgebras as an intermediate step as in
+   mathlib, may do that later anyway -/
 class HopfAlgebraTens (R:Type) (A:Type)
   [CommSemiring R]
   [AddCommMonoid A]

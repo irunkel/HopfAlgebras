@@ -5,8 +5,7 @@ import HopfAlgebra.Basic
 
 namespace SweedlerHopfAlgebra
 
--- TODO: maybe not define it over Q from the start but keep
--- ring arbitrary
+-- TODO: maybe not define it over Q from the start but keep ring arbitrary
 
 /- Sweedler's Hopf algebra is 4 dimensional, has a nilpotent
    element x, and a group-like g, so we will use e, x, g, gx
@@ -66,15 +65,6 @@ noncomputable abbrev βe  := β bas.e
 noncomputable abbrev βx  := β bas.x
 noncomputable abbrev βg  := β bas.g
 noncomputable abbrev βgx  := β bas.gx
-
-
-/- I wanted to work in the setting where algebras are defined
-   as linear maps A ⊗ A → A plus conditions, rather than as a
-   ring with a map to the centre (which is how it is done in the
-   library).
-   TODO: Is the current version already pre-defined, too?
--/
-
 
 
 /-
@@ -141,7 +131,7 @@ example : sha_mul ( βg ⊗ₜ[ℚ] βx - βx ⊗ₜ[ℚ] βg ) = (2:ℚ) • β
       := by rw [sha_mul_ββ_lemma,sha_mul_ββ_lemma]
   _ = βgx + βgx := by simp [sha_mul_on_basis]
   _ = (2:Rat) • βgx := by rw [two_smul];
-  -- there is a way to make it use "(2:Nat) * vector" directly - TODO
+-- TODO: There is a way to make it use "(2:Nat) * vector" directly, I think.
 
 noncomputable def βββ : Basis ((bas × bas) × bas) ℚ ((sha ⊗[ℚ] sha) ⊗[ℚ] sha)
   := Basis.tensorProduct ββ β
@@ -182,16 +172,6 @@ theorem sha_mul_assoc :
       repeat simp [sha_mul_on_basis,sha_mul_ββ_lemma,
         tensor_sub_left,tensor_sub_right];
 
-/-
-      ( repeat simp [sha_mul_on_basis];
-        repeat simp [sha_mul_ββ_lemma];
-        repeat simp [sha_mul_on_basis];
-        repeat simp [tensor_sub_left];
-        repeat simp [tensor_sub_right];
-        repeat simp [sha_mul_ββ_lemma];
-        repeat simp [sha_mul_on_basis];
-      )
--/
 /- TODO: surely somewhere there should be R -> M as a linear map
    which takes 1 in R to some basis vector b in M predefined
 -/
@@ -220,7 +200,7 @@ noncomputable def sha_g : ℚ →ₗ[ℚ] sha := {
 theorem sha_one_mul :
   ( (sha_mul : sha ⊗[ℚ] sha →ₗ[ℚ] sha)
   ∘ₗ (LinearMap.rTensorHom sha sha_unit : ℚ ⊗[ℚ] sha  →ₗ[ℚ]  sha ⊗[ℚ] sha)
-  ∘ₗ (LinearEquiv.symm (TensorProduct.lid ℚ sha) :  sha →ₗ[ℚ] (ℚ ⊗[ℚ] sha))
+  ∘ₗ (unitor_left_inv sha :  sha →ₗ[ℚ] (ℚ ⊗[ℚ] sha))
   : sha →ₗ[ℚ] sha)
   =
   (LinearMap.id
@@ -229,12 +209,12 @@ theorem sha_one_mul :
     apply Basis.ext β
     intro i
     simp [sha_unit]
-    cases i <;> simp [sha_mul_ββ_lemma,sha_mul_on_basis]
+    cases i <;> simp [unitor_left_inv,sha_mul_ββ_lemma,sha_mul_on_basis]
 
 theorem sha_mul_one :
   ( (sha_mul : sha ⊗[ℚ] sha →ₗ[ℚ] sha)
   ∘ₗ (LinearMap.lTensorHom sha sha_unit : sha ⊗[ℚ] ℚ  →ₗ[ℚ]  sha ⊗[ℚ] sha)
-  ∘ₗ (LinearEquiv.symm (TensorProduct.rid ℚ sha) :  sha →ₗ[ℚ] (sha ⊗[ℚ] ℚ))
+  ∘ₗ (unitor_right_inv sha :  sha →ₗ[ℚ] (sha ⊗[ℚ] ℚ))
   : sha →ₗ[ℚ] sha)
   =
   (LinearMap.id
@@ -242,7 +222,7 @@ theorem sha_mul_one :
   := by
     apply Basis.ext β
     intro i
-    simp [sha_unit]
+    simp [unitor_right_inv,sha_unit]
     cases i <;> simp [sha_mul_ββ_lemma,sha_mul_on_basis]
 
 noncomputable instance : AlgebraTens ℚ sha where
@@ -290,7 +270,7 @@ example :
 
 
 theorem sha_coone_comul  :
-  (TensorProduct.lid ℚ sha :  ℚ ⊗[ℚ] sha →ₗ[ℚ] sha)
+  (unitor_left sha :  ℚ ⊗[ℚ] sha →ₗ[ℚ] sha)
   ∘ₗ (LinearMap.rTensorHom sha sha_counit : sha ⊗[ℚ] sha  →ₗ[ℚ]  ℚ ⊗[ℚ] sha)
   ∘ₗ (sha_comul : sha →ₗ[ℚ] sha ⊗[ℚ] sha)
   =
@@ -299,11 +279,11 @@ theorem sha_coone_comul  :
   by
     apply Basis.ext β
     intro i
-    simp [sha_comul]
+    simp [unitor_left,sha_comul]
     cases i <;> simp [sha_comul_on_basis,sha_counit,sha_counit_on_basis]
 
 theorem sha_comul_coone :
-  (TensorProduct.rid ℚ sha :  sha ⊗[ℚ] ℚ →ₗ[ℚ] sha)
+  (unitor_right sha :  sha ⊗[ℚ] ℚ →ₗ[ℚ] sha)
   ∘ₗ (LinearMap.lTensorHom sha sha_counit : sha ⊗[ℚ] sha  →ₗ[ℚ]  sha ⊗[ℚ] ℚ)
   ∘ₗ (sha_comul : sha →ₗ[ℚ] sha ⊗[ℚ] sha)
   =
@@ -312,9 +292,8 @@ theorem sha_comul_coone :
   by
     apply Basis.ext β
     intro i
-    simp [sha_comul]
+    simp [unitor_right,sha_comul]
     cases i <;> simp [sha_comul_on_basis,sha_counit,sha_counit_on_basis]
-
 
 theorem sha_comul_coassoc :
   (TensorProduct.assoc ℚ sha sha sha
@@ -413,25 +392,25 @@ theorem sha_comul_unit :
   =
   ( (tensor_hom sha_unit sha_unit) : ℚ ⊗[ℚ] ℚ →ₗ[ℚ] sha ⊗[ℚ] sha )
   ∘ₗ
-  ( LinearEquiv.symm (TensorProduct.lid ℚ ℚ) : ℚ →ₗ[ℚ] ℚ⊗[ℚ] ℚ )
+  ( unitor_left_inv ℚ : ℚ →ₗ[ℚ] ℚ⊗[ℚ] ℚ )
   := by
     apply Basis.ext βℚ
     intro i
     rw [βℚ,Basis.singleton_apply]
-    simp [tensor_hom,sha_unit,sha_comul,sha_comul_on_basis]
+    simp [unitor_left_inv,tensor_hom,sha_unit,sha_comul,sha_comul_on_basis]
 
 theorem sha_counit_mul :
   ( sha_counit : sha →ₗ[ℚ] ℚ )
   ∘ₗ
   ( sha_mul : sha ⊗[ℚ] sha →ₗ[ℚ] sha)
   =
-  ( TensorProduct.lid ℚ ℚ : ℚ ⊗[ℚ] ℚ →ₗ[ℚ] ℚ )
+  ( unitor_left ℚ : ℚ ⊗[ℚ] ℚ →ₗ[ℚ] ℚ )
   ∘ₗ
   ( (tensor_hom sha_counit sha_counit) : sha ⊗[ℚ] sha →ₗ[ℚ] ℚ ⊗[ℚ] ℚ )
   := by
     apply Basis.ext ββ
     intro (a,b)
-    simp [tensor_hom,ββ,sha_mul_ββ_lemma]
+    simp [unitor_left,tensor_hom,ββ,sha_mul_ββ_lemma]
     cases a <;> cases b <;>
       simp [sha_counit,sha_counit_on_basis,sha_mul_on_basis]
 
