@@ -4,31 +4,8 @@ import Mathlib.LinearAlgebra.TensorProduct.Basic
 import Mathlib.LinearAlgebra.TensorProduct.Basis
 import HopfAlgebra.Basic
 
-variable {α : Type*} (s : Finset ℕ) (f : ℕ → ℕ) (n : ℕ)
-
-#check Finset.sum s f
-#check Finset.prod s f
-
 open BigOperators
 open Finset
-
-#check range 4
-
-#check Finset.sum s f
-#check Finset.prod s f
-open BigOperators
-open Finset
-example : s.sum f = ∑ x in s, f x := rfl
-
-example : s.sum f = ∑ x in s, f x :=
-  rfl
-
-example : s.prod f = ∏ x in s, f x :=
-  rfl
-
-example : (range n).sum f = ∑ x in range n, f x :=
-  rfl
-
 open scoped TensorProduct
 open Hopf
 
@@ -37,25 +14,11 @@ namespace FunctionsOnGroup
 variable {G : Type} [Group G] [Finite G] [DecidableEq G]
 variable {K : Type} [CommRing K]
 
+-- Fintype is needed for the Bigoperators to work, Σ etc.
+noncomputable instance : Fintype G := Fintype.ofFinite G
+
 abbrev Fun
   := G → K
-
-variable (k : Type*) [CommSemiring k]
-
-instance : Group G := inferInstanceAs
-
-#check inferInstanceAs (Inhabited Nat)
-
-variable [Fintype G] [Invertible (Fintype.card G : k)]
-
-/-- The average of all elements of the group `G`, considered as an element of `MonoidAlgebra k G`.
--/
-noncomputable def average : MonoidAlgebra k G :=
-  ⅟ (Fintype.card G : k) • ∑ g : G, of k G g
-#align group_algebra.average GroupAlgebra.average
-
-
-def ss : Finset G := sorry
 
 noncomputable def βK : Basis (Fin 1) K K
   := Basis.singleton (Fin 1) K
@@ -69,6 +32,8 @@ noncomputable def ββ : Basis (Prod G G) K ((@Fun G K) ⊗[K] (@Fun G K))
 noncomputable def βββ : Basis ((G × G) × G) K
   (((@Fun G K) ⊗[K] (@Fun G K)) ⊗[K] (@Fun G K))
   := Basis.tensorProduct ββ β
+
+/- --- Algebra structure on function algebra --- -/
 
 noncomputable def Fun_mul_on_basis : G × G → (@Fun G K) :=
   fun (a,b) ↦ if a=b then β a else 0
@@ -117,17 +82,22 @@ noncomputable def Fun_unit_el : (@Fun G K) := fun (_:G) ↦ (1:K)
 
 open BigOperators
 
-#check Finset G
-
-example : ∑ x in G, (1:Nat) = 0 := sorry
-
 noncomputable def Fun_unit_el_bas : (@Fun G K)
-  := ∑ x in (Finset G), β x
+  := ∑ x : G, β x
 
-#check fun (_: Fin 1) ↦ Fun_unit_el
+#check Finset.sum univ (fun x ↦ β x)
+
+theorem Fun_units_agree :
+  (Fun_unit_el : @Fun G K) = (Fun_unit_el_bas : @Fun G K)
+  := by
+    apply funext
+    intro g
+    rw [Fun_unit_el,Fun_unit_el_bas,β]
+    simp -- I do not understand how simp closes the goal here,
+         -- Tried to reproduce with rewrites, did not manage.
 
 noncomputable def Fun_unit : K →ₗ[K] (@Fun G K) :=
-  Basis.constr βK K (fun (_: Fin 1) ↦ Fun_unit_el)
+  Basis.constr βK K (fun (_: Fin 1) ↦ Fun_unit_el_bas)
 
 theorem Fun_one_mul :
     (Fun_mul : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K))
@@ -138,8 +108,9 @@ theorem Fun_one_mul :
     := by
       apply Basis.ext β
       intro i
-      simp [unitor_left_inv,Fun_unit]
-      sorry
+      simp [unitor_left_inv,Fun_unit,Fun_unit_el_bas,βK,
+        TensorProduct.sum_tmul,
+        Fun_mul_ββ_lemma,Fun_mul_on_basis]
 
 theorem Fun_mul_one :
     (Fun_mul : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K))
@@ -148,7 +119,11 @@ theorem Fun_mul_one :
     =
     (LinearMap.id : (@Fun G K) →ₗ[K] (@Fun G K))
     := by
-      sorry
+      apply Basis.ext β
+      intro i
+      simp [unitor_right_inv,Fun_unit,Fun_unit_el_bas,βK,
+        TensorProduct.tmul_sum,
+        Fun_mul_ββ_lemma,Fun_mul_on_basis]
 
 noncomputable instance : AlgebraTens K (@Fun G K) where
   mul := Fun_mul
@@ -157,28 +132,162 @@ noncomputable instance : AlgebraTens K (@Fun G K) where
   mul_one := Fun_mul_one
   mul_assoc := Fun_mul_assoc
 
-abbrev C4 := Multiplicative (Fin 4)
+/- --- Coalgebra structure on function algebra --- -/
+
+noncomputable def Fun_comul_on_basis : G → (@Fun G K) ⊗[K] (@Fun G K)
+  := fun g ↦ ∑ h:G , β (g*h) ⊗ₜ[K] β h⁻¹
+
+noncomputable def Fun_comul : (@Fun G K) →ₗ[K] (@Fun G K) ⊗[K] (@Fun G K) :=
+  Basis.constr β K Fun_comul_on_basis
+
+noncomputable def Fun_counit_on_basis : G → K := fun g ↦
+  if g = (1:G) then (1:K) else (0:K)
+
+noncomputable def Fun_counit : (@Fun G K) →ₗ[K] K :=
+  Basis.constr β K Fun_counit_on_basis
+
+theorem Fun_coone_comul :
+  (unitor_left Fun : K ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K))
+  ∘ₗ (LinearMap.rTensorHom Fun Fun_counit : (@Fun G K) ⊗[K] (@Fun G K)  →ₗ[K]  K ⊗[K] (@Fun G K))
+  ∘ₗ (Fun_comul : (@Fun G K) →ₗ[K] (@Fun G K) ⊗[K] (@Fun G K))
+  =
+  (LinearMap.id : (@Fun G K) →ₗ[K] (@Fun G K))
+  := by
+    sorry
+
+theorem Fun_comul_coone :
+  (unitor_right Fun :  (@Fun G K) ⊗[K] K →ₗ[K] (@Fun G K))
+  ∘ₗ (LinearMap.lTensorHom Fun Fun_counit : (@Fun G K) ⊗[K] (@Fun G K)  →ₗ[K]  (@Fun G K) ⊗[K] K)
+  ∘ₗ (Fun_comul : (@Fun G K) →ₗ[K] (@Fun G K) ⊗[K] (@Fun G K))
+  =
+  (LinearMap.id : (@Fun G K) →ₗ[K] (@Fun G K))
+  := by
+    sorry
+
+theorem Fun_comul_coassoc :
+  (TensorProduct.assoc K (@Fun G K) (@Fun G K) (@Fun G K)
+      : ((@Fun G K) ⊗[K] (@Fun G K)) ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K) ⊗[K] ((@Fun G K) ⊗[K] (@Fun G K)))
+  ∘ₗ (LinearMap.rTensorHom Fun Fun_comul
+      : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] ((@Fun G K) ⊗[K] (@Fun G K)) ⊗[K] (@Fun G K))
+  ∘ₗ (Fun_comul : (@Fun G K) →ₗ[K] (@Fun G K) ⊗[K] (@Fun G K))
+  =
+  (LinearMap.lTensorHom Fun Fun_comul
+      : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K) ⊗[K] ((@Fun G K) ⊗[K] (@Fun G K)))
+  ∘ₗ (Fun_comul : (@Fun G K) →ₗ[K] (@Fun G K) ⊗[K] (@Fun G K))
+  := by
+    sorry
+
+noncomputable instance : CoalgebraTens K (@Fun G K) where
+  comul := Fun_comul
+  counit := Fun_counit
+  coone_comul := Fun_coone_comul
+  comul_coone := Fun_comul_coone
+  comul_coassoc := Fun_comul_coassoc
+
+
+/- --- Hopf algebra structure on function algebra --- -/
+
+def Fun_anti : (@Fun G K) →ₗ[K] (@Fun G K) := sorry
+
+theorem Fun_comul_mul :
+  ( mulAA : ((@Fun G K) ⊗[K] (@Fun G K)) ⊗[K] ((@Fun G K) ⊗[K] (@Fun G K)) →ₗ[K] (@Fun G K) ⊗[K] (@Fun G K) )
+  ∘ₗ
+  ( tensor_hom Fun_comul Fun_comul : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] ((@Fun G K) ⊗[K] (@Fun G K)) ⊗[K] ((@Fun G K) ⊗[K] (@Fun G K)) )
+  =
+  ( Fun_comul : (@Fun G K) →ₗ[K] (@Fun G K) ⊗[K] (@Fun G K) )
+  ∘ₗ
+  ( Fun_mul : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K))
+  := by
+    sorry
+
+theorem Fun_comul_unit :
+  ( Fun_comul : (@Fun G K) →ₗ[K] (@Fun G K) ⊗[K] (@Fun G K) )
+  ∘ₗ
+  ( Fun_unit : K →ₗ[K] (@Fun G K) )
+  =
+  ( (tensor_hom Fun_unit Fun_unit) : K ⊗[K] K →ₗ[K] (@Fun G K) ⊗[K] (@Fun G K) )
+  ∘ₗ
+  ( unitor_left_inv K : K →ₗ[K] K⊗[K] K )
+  := by
+    sorry
+
+theorem Fun_counit_mul :
+  ( Fun_counit : (@Fun G K) →ₗ[K] K )
+  ∘ₗ
+  ( Fun_mul : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K))
+  =
+  ( unitor_left K : K ⊗[K] K →ₗ[K] K )
+  ∘ₗ
+  ( (tensor_hom Fun_counit Fun_counit) : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] K ⊗[K] K )
+  := by
+    sorry
+
+theorem Fun_counit_unit :
+  ( Fun_counit : (@Fun G K) →ₗ[K] K )
+  ∘ₗ
+  ( Fun_unit : K →ₗ[K] (@Fun G K) )
+  =
+  ( LinearMap.id : K →ₗ[K] K )
+  := by
+    sorry
+
+theorem Fun_anti_left :
+  ( Fun_mul : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K) )
+  ∘ₗ
+  ( LinearMap.lTensorHom Fun Fun_anti : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K) ⊗[K] (@Fun G K) )
+  ∘ₗ
+  ( Fun_comul : (@Fun G K) →ₗ[K] (@Fun G K) ⊗[K] (@Fun G K) )
+  =
+  ( Fun_unit : K →ₗ[K] (@Fun G K) )
+  ∘ₗ
+  ( Fun_counit : (@Fun G K) →ₗ[K] K )
+  := by
+    sorry
+
+theorem Fun_anti_right :
+  ( Fun_mul : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K) )
+  ∘ₗ
+  ( LinearMap.rTensorHom Fun Fun_anti : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K) ⊗[K] (@Fun G K) )
+  ∘ₗ
+  ( Fun_comul : (@Fun G K) →ₗ[K] (@Fun G K) ⊗[K] (@Fun G K) )
+  =
+  ( Fun_unit : K →ₗ[K] (@Fun G K) )
+  ∘ₗ
+  ( Fun_counit : (@Fun G K) →ₗ[K] K )
+  := by
+    sorry
+
+noncomputable instance : HopfAlgebraTens K (@Fun G K) where
+  anti := Fun_anti
+  comul_mul := Fun_comul_mul
+  comul_unit := Fun_comul_unit
+  counit_mul := Fun_counit_mul
+  counit_unit := Fun_counit_unit
+  anti_left := Fun_anti_left
+  anti_right := Fun_anti_right
+
+
+/- --- Function algebra for Z/4Z as an example --- -/
+
+def C4 := Multiplicative (Fin 4)
+instance : Group C4 := inferInstanceAs (Group (Multiplicative (Fin 4)))
+instance : Finite C4 := inferInstanceAs (Finite (Fin 4))
 abbrev FunC4 := @Fun C4 ℚ
-
-#check (3:Fin 4)
-
-#check (β (3:Fin 4) : FunC4)
 
 example : Fun_mul_on_basis ( (3:Fin 4) , (3:Fin 4) ) = (β (3:Fin 4):FunC4) :=
   by
     simp [Fun_mul_on_basis]
     rfl
 
-example : Fun_mul ( (β (3:Fin 4) : FunC4) ⊗[ℚ] (β (3:Fin 4) : FunC4) ) = 0 :=
-  by
-    sorry
+example : Fun_mul ( (β (3:Fin 4)) ⊗ₜ[K] (β (3:Fin 4)) ) = β (3:Fin 4) :=
+  by simp [Fun_mul_ββ_lemma,Fun_mul_on_basis]
 
-def testinstance (A : Type) [AlgebraTens ℚ C2] : Nat := 0
-
-example : testinstance (Multiplicative (Fin 2)) = 0 := rfl
+example : Fun_mul ( (β (2:Fin 4)) ⊗ₜ[K] (β (3:Fin 4)) ) = 0 :=
+  by simp [Fun_mul_ββ_lemma,Fun_mul_on_basis]
 
 end FunctionsOnGroup
 
+-- This is in Mathlib as "MonoidAlgebra"
 namespace GroupAlgebra
 
 variable {K : Type} [CommRing K]

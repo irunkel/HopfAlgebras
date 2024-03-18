@@ -25,7 +25,14 @@ def Vd := bas → ℚ
 def testinstance (A : Type) [AddCommMonoid A] : Nat := 0
 
 example : testinstance Va = 0 := rfl
-example : testinstance Vb = 0 := rfl -- this fails
+--example : testinstance Vd = 0 := rfl -- this fails
+
+/- The answer to Q 1.1 is "inferInstanceAs" -/
+
+instance : AddCommMonoid Vd :=
+   inferInstanceAs (AddCommMonoid (bas→ℚ))
+
+example : testinstance Vd = 0 := rfl -- this now works
 
 /- Question 1.2: How can I use "def" and still make Vb not
    forget that it is an AddCommMonoid? I would like Vb to
