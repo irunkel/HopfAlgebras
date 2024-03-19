@@ -153,6 +153,11 @@ theorem Fun_coone_comul :
   =
   (LinearMap.id : (@Fun G K) →ₗ[K] (@Fun G K))
   := by
+    apply Basis.ext β
+    intro g
+    simp [Fun_comul,Fun_comul_on_basis,
+      Fun_counit,Fun_counit_on_basis,
+      unitor_left]
     sorry
 
 theorem Fun_comul_coone :
@@ -175,6 +180,10 @@ theorem Fun_comul_coassoc :
       : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K) ⊗[K] ((@Fun G K) ⊗[K] (@Fun G K)))
   ∘ₗ (Fun_comul : (@Fun G K) →ₗ[K] (@Fun G K) ⊗[K] (@Fun G K))
   := by
+    apply Basis.ext β
+    intro g
+    simp [Fun_comul,Fun_comul_on_basis,
+      TensorProduct.tmul_sum,TensorProduct.sum_tmul]
     sorry
 
 noncomputable instance : CoalgebraTens K (@Fun G K) where
@@ -209,6 +218,13 @@ theorem Fun_comul_unit :
   ∘ₗ
   ( unitor_left_inv K : K →ₗ[K] K⊗[K] K )
   := by
+    apply Basis.ext βK
+    intro i
+    rw [βK,Basis.singleton_apply]
+    simp [unitor_left_inv,tensor_hom]
+    simp [Fun_unit,Fun_unit_el_bas,βK]
+    simp [Fun_comul,Fun_comul_on_basis]
+    --  Fun_unit,Fun_unit_el_bas,Fun_comul,Fun_comul_on_basis]
     sorry
 
 theorem Fun_counit_mul :
@@ -220,7 +236,28 @@ theorem Fun_counit_mul :
   ∘ₗ
   ( (tensor_hom Fun_counit Fun_counit) : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] K ⊗[K] K )
   := by
-    sorry
+    apply Basis.ext ββ
+    intro (g,h)
+    simp [Fun_mul]
+    simp [Fun_mul_on_basis] -- If one combines this with the privous one it introduces a sum for some reason
+    simp [Fun_counit,Fun_counit_on_basis]
+    simp [β,ββ,unitor_left,tensor_hom,Fun_counit,Fun_counit_on_basis]
+    cases (eq_or_ne g 1) with
+    | inl a1 =>
+        simp [a1]
+        cases (eq_or_ne h 1) with
+        | inl a2 => simp [a2]
+        | inr a2 =>
+            have : 1 ≠ h := by exact Ne.symm a2 -- Why oh why does the simplifier not see this?
+            simp [a2,this]
+    | inr a1 =>
+        simp [a1]
+        cases (eq_or_ne h 1) with
+        | inl a2 => simp [a1,a2]
+        | inr a2 =>
+            cases (eq_or_ne g h) with
+            | inl a3 => simp [a3,a2]
+            | inr a3 => simp [a3]
 
 theorem Fun_counit_unit :
   ( Fun_counit : (@Fun G K) →ₗ[K] K )
@@ -229,7 +266,10 @@ theorem Fun_counit_unit :
   =
   ( LinearMap.id : K →ₗ[K] K )
   := by
-    sorry
+    apply Basis.ext βK
+    intro i
+    simp [βK,Fun_unit,Fun_unit_el_bas,
+      Fun_counit,Fun_counit_on_basis]
 
 theorem Fun_anti_left :
   ( Fun_mul : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K) )

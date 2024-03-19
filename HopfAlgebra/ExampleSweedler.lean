@@ -5,6 +5,8 @@ import HopfAlgebra.Basic
 
 namespace SweedlerHopfAlgebra
 
+variable {K : Type} [CommRing K]
+
 -- TODO: maybe not define it over Q from the start but keep ring arbitrary
 
 /- Sweedler's Hopf algebra is 4 dimensional, has a nilpotent
@@ -50,21 +52,25 @@ def isEquivFin4 : Equiv bas (Fin 4) :=
 -- and with that we can declare that bas is finite
 instance : Finite bas := Finite.intro isEquivFin4
 
-/- TODO: I wanted to do this with my own type via "abbrev sha := bas → ℚ",
+/- TODO: I wanted to do this with my own type via "abbrev sha := bas → K",
    but then it forgets all properties and I was not able to reprove e.g.
    AddCommGroup, eg I failed with zsmul_zero' etc.
 -/
 -- sha = *S*weedler's *H*opf *a*lgebra
-abbrev sha := bas → ℚ
+def sha := bas → K
+instance : AddCommGroup (@sha K) := inferInstanceAs (AddCommGroup (bas → K))
+  -- if one uses AddCommMonoid here, the "a-b" operation below will
+  -- complain that it cannot instantiate "Neg".
+instance : Module K (@sha K) := inferInstanceAs (Module K (bas → K))
 
 -- this turns functions into a basis
-noncomputable def β : Basis bas ℚ sha
-  := Pi.basisFun ℚ bas
+noncomputable def β : Basis bas K (@sha K)
+  := Pi.basisFun K bas
 
-noncomputable abbrev βe  := β bas.e
-noncomputable abbrev βx  := β bas.x
-noncomputable abbrev βg  := β bas.g
-noncomputable abbrev βgx  := β bas.gx
+noncomputable abbrev βe  := (β bas.e  : @sha K)
+noncomputable abbrev βx  := (β bas.x  : @sha K)
+noncomputable abbrev βg  := (β bas.g  : @sha K)
+noncomputable abbrev βgx := (β bas.gx : @sha K)
 
 
 /-
@@ -72,7 +78,7 @@ noncomputable abbrev βgx  := β bas.gx
   (will use ⊗ below, but want to use full notation at
    least once to start with)
 -/
-noncomputable def ββ : Basis (Prod bas bas) ℚ (TensorProduct ℚ sha sha)
+noncomputable def ββ : Basis (Prod bas bas) K (TensorProduct K (@sha K) (@sha K))
   := Basis.tensorProduct β β
 
 -- mathlib docu says I should do this to use ⊗
@@ -83,7 +89,7 @@ open Hopf
 /- --- Algebra structure for Sweedler --- -/
 
 -- product of basis vectors
-noncomputable def sha_mul_on_basis : bas × bas → sha := fun (a,b) ↦
+noncomputable def sha_mul_on_basis : bas × bas → (@sha K) := fun (a,b) ↦
   match a,b with
   | bas.e,_ => β b
   | _,bas.e => β a
@@ -97,16 +103,17 @@ noncomputable def sha_mul_on_basis : bas × bas → sha := fun (a,b) ↦
   | bas.gx , bas.g => - βx
   | bas.gx , bas.gx => 0
 
-example : sha_mul_on_basis (bas.e , bas.e) = βe := by rfl
+example : sha_mul_on_basis (bas.e , bas.e) = ( βe : @sha K )
+  := by rfl
 
 /- and the corresponding linear map on the tensor product
-   Note that sha ⊗[ℚ] sha → sha is also accepted here, but then
+   Note that sha ⊗[K] sha → sha is also accepted here, but then
    below we cannot use that sha_mul is a linear map.
 -/
-noncomputable def sha_mul : sha ⊗[ℚ] sha →ₗ[ℚ] sha :=
-  Basis.constr ββ ℚ sha_mul_on_basis
+noncomputable def sha_mul : (@sha K) ⊗[K] (@sha K) →ₗ[K] (@sha K) :=
+  Basis.constr ββ K sha_mul_on_basis
 
-theorem sha_mul_ββ_lemma : sha_mul ((β i) ⊗ₜ[ℚ] (β j)) = sha_mul_on_basis (i,j)
+theorem sha_mul_ββ_lemma : sha_mul ((β i) ⊗ₜ[K] (β j)) = sha_mul_on_basis (i,j)
   := by
     rw [sha_mul]
     rw [← Basis.tensorProduct_apply, ← ββ]
@@ -120,48 +127,47 @@ theorem sha_mul_ββ_lemma : sha_mul ((β i) ⊗ₜ[ℚ] (β j)) = sha_mul_on_ba
    in SMul. This gives the 2nd version of the rhs below.
 -/
 
-example : sha_mul ( βg ⊗ₜ[ℚ] βx - βx ⊗ₜ[ℚ] βg ) = (2:ℚ) • βgx
--- the dot is the action of ℚ on sha, in long form: = SMul.smul (2:ℚ) (β bas.gx:sha)
+example : sha_mul ( βg ⊗ₜ[K] βx - βx ⊗ₜ[K] βg ) = (2:K) • ( βgx : @sha K )
+-- the dot is the action of K on sha, in long form: = SMul.smul (2:K) (β bas.gx:sha)
   := by
   calc
-  sha_mul ( βg ⊗ₜ[ℚ] βx - βx ⊗ₜ[ℚ] βg )
-    = sha_mul ( βg ⊗ₜ[ℚ] βx ) - sha_mul ( βx ⊗ₜ[ℚ] βg ) := by simp
+  sha_mul ( βg ⊗ₜ[K] βx - βx ⊗ₜ[K] βg )
+    = sha_mul ( βg ⊗ₜ[K] βx ) - sha_mul ( βx ⊗ₜ[K] βg ) := by simp
   _ = sha_mul_on_basis ( bas.g , bas.x )
       - sha_mul_on_basis ( bas.x , bas.g )
       := by rw [sha_mul_ββ_lemma,sha_mul_ββ_lemma]
   _ = βgx + βgx := by simp [sha_mul_on_basis]
-  _ = (2:Rat) • βgx := by rw [two_smul];
--- TODO: There is a way to make it use "(2:Nat) * vector" directly, I think.
+  _ = (2:K) • βgx := by rw [two_smul];
 
-noncomputable def βββ : Basis ((bas × bas) × bas) ℚ ((sha ⊗[ℚ] sha) ⊗[ℚ] sha)
+noncomputable def βββ : Basis ((bas × bas) × bas) K (((@sha K) ⊗[K] (@sha K)) ⊗[K] (@sha K))
   := Basis.tensorProduct ββ β
 
-theorem tensor_sub_right (a b : sha): a ⊗ₜ[ℚ] (-b) = - (a ⊗ₜ[ℚ] b)
+theorem tensor_sub_right (a b : (@sha K)): a ⊗ₜ[K] (-b) = - (a ⊗ₜ[K] b)
   := by
     calc
-      a ⊗ₜ[ℚ] (-b)
-        = a ⊗ₜ[ℚ] ((-1) • b) := by simp
-      _ = (-1) • (a ⊗ₜ[ℚ] b) := by rw [TensorProduct.tmul_smul]
-      _ = - (a ⊗ₜ[ℚ] b) := by simp
+      a ⊗ₜ[K] (-b)
+        = a ⊗ₜ[K] ((-1) • b) := by simp
+      _ = (-1) • (a ⊗ₜ[K] b) := by rw [TensorProduct.tmul_smul]
+      _ = - (a ⊗ₜ[K] b) := by simp
 
-theorem tensor_sub_left (a b : sha): (-a) ⊗ₜ[ℚ] b = - (a ⊗ₜ[ℚ] b)
+theorem tensor_sub_left (a b : (@sha K)): (-a) ⊗ₜ[K] b = - (a ⊗ₜ[K] b)
   := by
     calc
-      (-a) ⊗ₜ[ℚ] b
-        = ((-1) • a) ⊗ₜ[ℚ] b := by simp
-      _ = (-1) • (a ⊗ₜ[ℚ] b) := by rw [TensorProduct.smul_tmul']
-      _ = - (a ⊗ₜ[ℚ] b) := by simp
+      (-a) ⊗ₜ[K] b
+        = ((-1) • a) ⊗ₜ[K] b := by simp
+      _ = (-1) • (a ⊗ₜ[K] b) := by rw [TensorProduct.smul_tmul']
+      _ = - (a ⊗ₜ[K] b) := by simp
 
 theorem sha_mul_assoc :
   (sha_mul
   ∘ₗ (LinearMap.rTensorHom sha sha_mul) :
-  (sha ⊗[ℚ] sha) ⊗[ℚ] sha →ₗ[ℚ] sha)
+  (sha ⊗[K] sha) ⊗[K] sha →ₗ[K] sha)
   =
   (sha_mul
   ∘ₗ (LinearMap.lTensorHom sha sha_mul)
-  ∘ₗ (TensorProduct.assoc ℚ sha sha sha)
+  ∘ₗ (TensorProduct.assoc K (@sha K) (@sha K) (@sha K))
   :
-  (sha ⊗[ℚ] sha) ⊗[ℚ] sha →ₗ[ℚ] sha)
+  (sha ⊗[K] sha) ⊗[K] sha →ₗ[K] sha)
   := by
     apply Basis.ext βββ
     intro ⟨ ⟨a,b⟩ , c ⟩
@@ -175,7 +181,7 @@ theorem sha_mul_assoc :
 /- TODO: surely somewhere there should be R -> M as a linear map
    which takes 1 in R to some basis vector b in M predefined
 -/
-noncomputable def sha_unit : ℚ →ₗ[ℚ] sha := {
+noncomputable def sha_unit : K →ₗ[K] (@sha K) := {
   toFun := fun a ↦ a • βe
   map_add' := by
     intro a b
@@ -183,10 +189,10 @@ noncomputable def sha_unit : ℚ →ₗ[ℚ] sha := {
   map_smul' := by
     intro a b
     dsimp
-    rw [mul_smul (a:Rat) (b:Rat) βe]
+    rw [mul_smul (a:K) (b:K) βe]
   }
 
-noncomputable def sha_g : ℚ →ₗ[ℚ] sha := {
+noncomputable def sha_g : K →ₗ[K] (@sha K) := {
   toFun := fun a ↦ a • βg
   map_add' := by
     intro a b
@@ -194,17 +200,17 @@ noncomputable def sha_g : ℚ →ₗ[ℚ] sha := {
   map_smul' := by
     intro a b
     dsimp
-    rw [mul_smul (a:Rat) (b:Rat) βg]
+    rw [mul_smul (a:K) (b:K) βg]
   }
 
 theorem sha_one_mul :
-  ( (sha_mul : sha ⊗[ℚ] sha →ₗ[ℚ] sha)
-  ∘ₗ (LinearMap.rTensorHom sha sha_unit : ℚ ⊗[ℚ] sha  →ₗ[ℚ]  sha ⊗[ℚ] sha)
-  ∘ₗ (unitor_left_inv sha :  sha →ₗ[ℚ] (ℚ ⊗[ℚ] sha))
-  : sha →ₗ[ℚ] sha)
+  ( (sha_mul : sha ⊗[K] sha →ₗ[K] sha)
+  ∘ₗ (LinearMap.rTensorHom sha sha_unit : K ⊗[K] sha  →ₗ[K]  sha ⊗[K] sha)
+  ∘ₗ (unitor_left_inv sha :  sha →ₗ[K] (K ⊗[K] sha))
+  : sha →ₗ[K] sha)
   =
   (LinearMap.id
-  : sha →ₗ[ℚ] sha)
+  : sha →ₗ[K] sha)
   := by
     apply Basis.ext β
     intro i
@@ -212,20 +218,20 @@ theorem sha_one_mul :
     cases i <;> simp [unitor_left_inv,sha_mul_ββ_lemma,sha_mul_on_basis]
 
 theorem sha_mul_one :
-  ( (sha_mul : sha ⊗[ℚ] sha →ₗ[ℚ] sha)
-  ∘ₗ (LinearMap.lTensorHom sha sha_unit : sha ⊗[ℚ] ℚ  →ₗ[ℚ]  sha ⊗[ℚ] sha)
-  ∘ₗ (unitor_right_inv sha :  sha →ₗ[ℚ] (sha ⊗[ℚ] ℚ))
-  : sha →ₗ[ℚ] sha)
+  ( (sha_mul : sha ⊗[K] sha →ₗ[K] sha)
+  ∘ₗ (LinearMap.lTensorHom sha sha_unit : sha ⊗[K] K  →ₗ[K]  sha ⊗[K] sha)
+  ∘ₗ (unitor_right_inv sha :  sha →ₗ[K] (sha ⊗[K] K))
+  : sha →ₗ[K] sha)
   =
   (LinearMap.id
-  : sha →ₗ[ℚ] sha)
+  : sha →ₗ[K] sha)
   := by
     apply Basis.ext β
     intro i
     simp [unitor_right_inv,sha_unit]
     cases i <;> simp [sha_mul_ββ_lemma,sha_mul_on_basis]
 
-noncomputable instance : AlgebraTens ℚ sha where
+noncomputable instance : AlgebraTens K (@sha K) where
   mul := sha_mul
   unit := sha_unit
   one_mul := sha_one_mul
@@ -234,25 +240,25 @@ noncomputable instance : AlgebraTens ℚ sha where
 
 /- --- Coalgebra structure for Sweedler --- -/
 
-noncomputable def sha_comul_on_basis : bas → sha ⊗[ℚ] sha := fun a ↦
+noncomputable def sha_comul_on_basis : bas → (@sha K) ⊗[K] (@sha K) := fun a ↦
   match a with
-  | bas.e => βe ⊗ₜ[ℚ] βe
-  | bas.x => βe ⊗ₜ[ℚ] βx + βx ⊗ₜ[ℚ] βg
-  | bas.g => βg ⊗ₜ[ℚ] βg
-  | bas.gx => βg ⊗ₜ[ℚ] βgx + βgx ⊗ₜ[ℚ] βe
+  | bas.e => βe ⊗ₜ[K] βe
+  | bas.x => βe ⊗ₜ[K] βx + βx ⊗ₜ[K] βg
+  | bas.g => βg ⊗ₜ[K] βg
+  | bas.gx => βg ⊗ₜ[K] βgx + βgx ⊗ₜ[K] βe
 
-noncomputable def sha_comul : sha  →ₗ[ℚ]  sha ⊗[ℚ] sha :=
-  Basis.constr β ℚ sha_comul_on_basis
+noncomputable def sha_comul : (@sha K)  →ₗ[K]  (@sha K) ⊗[K] (@sha K) :=
+  Basis.constr β K sha_comul_on_basis
 
-noncomputable def sha_counit_on_basis : bas → ℚ := fun a ↦
+noncomputable def sha_counit_on_basis : bas → K := fun a ↦
   match a with
   | bas.e => 1
   | bas.x => 0
   | bas.g => 1
   | bas.gx => 0
 
-noncomputable def sha_counit : sha  →ₗ[ℚ] ℚ :=
-  Basis.constr β ℚ sha_counit_on_basis
+noncomputable def sha_counit : (@sha K)  →ₗ[K] K :=
+  Basis.constr β K sha_counit_on_basis
 
 /-
   this checks that the definition of the coproduct indeed
@@ -261,7 +267,7 @@ noncomputable def sha_counit : sha  →ₗ[ℚ] ℚ :=
   simplifier?
 -/
 example :
-  ( mulAA ∘ₗ (tensor_hom sha_comul sha_comul) ) (βg ⊗ₜ[ℚ] βx)
+  ( mulAA ∘ₗ (tensor_hom sha_comul sha_comul) ) (βg ⊗ₜ[K] βx)
   = sha_comul βgx
   := by
     simp [tensor_hom,sha_comul,sha_comul_on_basis,
@@ -270,11 +276,11 @@ example :
 
 
 theorem sha_coone_comul  :
-  (unitor_left sha :  ℚ ⊗[ℚ] sha →ₗ[ℚ] sha)
-  ∘ₗ (LinearMap.rTensorHom sha sha_counit : sha ⊗[ℚ] sha  →ₗ[ℚ]  ℚ ⊗[ℚ] sha)
-  ∘ₗ (sha_comul : sha →ₗ[ℚ] sha ⊗[ℚ] sha)
+  (unitor_left sha :  K ⊗[K] sha →ₗ[K] sha)
+  ∘ₗ (LinearMap.rTensorHom sha sha_counit : sha ⊗[K] sha  →ₗ[K]  K ⊗[K] sha)
+  ∘ₗ (sha_comul : sha →ₗ[K] sha ⊗[K] sha)
   =
-  (LinearMap.id : sha →ₗ[ℚ] sha)
+  (LinearMap.id : sha →ₗ[K] sha)
   :=
   by
     apply Basis.ext β
@@ -283,11 +289,11 @@ theorem sha_coone_comul  :
     cases i <;> simp [sha_comul_on_basis,sha_counit,sha_counit_on_basis]
 
 theorem sha_comul_coone :
-  (unitor_right sha :  sha ⊗[ℚ] ℚ →ₗ[ℚ] sha)
-  ∘ₗ (LinearMap.lTensorHom sha sha_counit : sha ⊗[ℚ] sha  →ₗ[ℚ]  sha ⊗[ℚ] ℚ)
-  ∘ₗ (sha_comul : sha →ₗ[ℚ] sha ⊗[ℚ] sha)
+  (unitor_right sha :  sha ⊗[K] K →ₗ[K] sha)
+  ∘ₗ (LinearMap.lTensorHom sha sha_counit : sha ⊗[K] sha  →ₗ[K]  sha ⊗[K] K)
+  ∘ₗ (sha_comul : sha →ₗ[K] sha ⊗[K] sha)
   =
-  (LinearMap.id : sha →ₗ[ℚ] sha)
+  (LinearMap.id : sha →ₗ[K] sha)
   :=
   by
     apply Basis.ext β
@@ -296,15 +302,15 @@ theorem sha_comul_coone :
     cases i <;> simp [sha_comul_on_basis,sha_counit,sha_counit_on_basis]
 
 theorem sha_comul_coassoc :
-  (TensorProduct.assoc ℚ sha sha sha
-      : (sha ⊗[ℚ] sha) ⊗[ℚ] sha →ₗ[ℚ] sha ⊗[ℚ] (sha ⊗[ℚ] sha))
+  (TensorProduct.assoc K (@sha K) (@sha K) (@sha K)
+      : (sha ⊗[K] sha) ⊗[K] sha →ₗ[K] sha ⊗[K] (sha ⊗[K] sha))
   ∘ₗ (LinearMap.rTensorHom sha sha_comul
-      : sha ⊗[ℚ] sha →ₗ[ℚ] (sha ⊗[ℚ] sha) ⊗[ℚ] sha)
-  ∘ₗ (sha_comul : sha →ₗ[ℚ] sha ⊗[ℚ] sha)
+      : sha ⊗[K] sha →ₗ[K] (sha ⊗[K] sha) ⊗[K] sha)
+  ∘ₗ (sha_comul : sha →ₗ[K] sha ⊗[K] sha)
   =
   (LinearMap.lTensorHom sha sha_comul
-      : sha ⊗[ℚ] sha →ₗ[ℚ] sha ⊗[ℚ] (sha ⊗[ℚ] sha))
-  ∘ₗ (sha_comul : sha →ₗ[ℚ] sha ⊗[ℚ] sha)
+      : sha ⊗[K] sha →ₗ[K] sha ⊗[K] (sha ⊗[K] sha))
+  ∘ₗ (sha_comul : sha →ₗ[K] sha ⊗[K] sha)
   :=
   by
     apply Basis.ext β
@@ -317,7 +323,7 @@ theorem sha_comul_coassoc :
     | bas.gx => simp [sha_comul_on_basis,TensorProduct.add_tmul,TensorProduct.tmul_add]; rw [add_assoc]
 
 
-noncomputable instance : CoalgebraTens ℚ sha where
+noncomputable instance : CoalgebraTens K (@sha K) where
   comul := sha_comul
   counit := sha_counit
   coone_comul := sha_coone_comul
@@ -327,33 +333,34 @@ noncomputable instance : CoalgebraTens ℚ sha where
 
 /- --- Check that it is a Hopf algebra --- -/
 
-noncomputable def sha_anti_on_basis : bas → sha := fun a ↦
+noncomputable def sha_anti_on_basis : bas → (@sha K) := fun a ↦
   match a with
   | bas.e => βe
   | bas.x => βgx
   | bas.g => βg
   | bas.gx => -βx
 
-noncomputable def sha_anti : sha →ₗ[ℚ] sha :=
-  Basis.constr β ℚ sha_anti_on_basis
+noncomputable def sha_anti : (@sha K) →ₗ[K] (@sha K) :=
+  Basis.constr β K sha_anti_on_basis
 
 
 -- the map x ↦ g x g⁻¹ , but here g⁻¹ = g.
-noncomputable def sha_g_conj : sha →ₗ[ℚ] sha :=
-  (sha_mul : sha ⊗[ℚ] sha →ₗ[ℚ] sha)
+noncomputable def sha_g_conj : (@sha K) →ₗ[K] (@sha K) :=
+  (sha_mul : sha ⊗[K] sha →ₗ[K] sha)
   ∘ₗ
-  (LinearMap.rTensorHom sha sha_mul : (sha ⊗[ℚ] sha) ⊗[ℚ] sha →ₗ[ℚ] sha ⊗[ℚ] sha)
+  (LinearMap.rTensorHom sha sha_mul : (sha ⊗[K] sha) ⊗[K] sha →ₗ[K] sha ⊗[K] sha)
   ∘ₗ
-  (LinearMap.rTensorHom sha (LinearMap.rTensorHom sha sha_g) : (ℚ ⊗[ℚ] sha) ⊗[ℚ] sha →ₗ[ℚ] (sha ⊗[ℚ] sha) ⊗[ℚ] sha)
+  (LinearMap.rTensorHom sha (LinearMap.rTensorHom sha sha_g) : (K ⊗[K] sha) ⊗[K] sha →ₗ[K] (sha ⊗[K] sha) ⊗[K] sha)
   ∘ₗ
-  (LinearMap.rTensorHom sha (unitor_left_inv sha) : sha ⊗[ℚ] sha →ₗ[ℚ] (ℚ ⊗[ℚ] sha) ⊗[ℚ] sha)
+  (LinearMap.rTensorHom sha (unitor_left_inv sha) : sha ⊗[K] sha →ₗ[K] (K ⊗[K] sha) ⊗[K] sha)
   ∘ₗ
-  (LinearMap.lTensorHom sha sha_g : sha ⊗[ℚ] ℚ →ₗ[ℚ] sha ⊗[ℚ] sha)
+  (LinearMap.lTensorHom sha sha_g : sha ⊗[K] K →ₗ[K] sha ⊗[K] sha)
   ∘ₗ
-  (unitor_right_inv sha : sha →ₗ[ℚ] sha ⊗[ℚ] ℚ)
+  (unitor_right_inv sha : sha →ₗ[K] sha ⊗[K] K)
 
 -- the antipode squares to conjugating with g
-example : sha_anti ∘ₗ sha_anti = sha_g_conj
+example : ( sha_anti ∘ₗ sha_anti : (@sha K) →ₗ[K] (@sha K))
+  = ( sha_g_conj : (@sha K) →ₗ[K] (@sha K))
   := by
     apply Basis.ext β
     intro i
@@ -363,13 +370,13 @@ example : sha_anti ∘ₗ sha_anti = sha_g_conj
       unitor_right_inv,unitor_left_inv]
 
 theorem sha_comul_mul :
-  ( mulAA : (sha ⊗[ℚ] sha) ⊗[ℚ] (sha ⊗[ℚ] sha) →ₗ[ℚ] sha ⊗[ℚ] sha )
+  ( mulAA : (sha ⊗[K] sha) ⊗[K] (sha ⊗[K] sha) →ₗ[K] sha ⊗[K] sha )
   ∘ₗ
-  ( tensor_hom sha_comul sha_comul : sha ⊗[ℚ] sha →ₗ[ℚ] (sha ⊗[ℚ] sha) ⊗[ℚ] (sha ⊗[ℚ] sha) )
+  ( tensor_hom sha_comul sha_comul : sha ⊗[K] sha →ₗ[K] (sha ⊗[K] sha) ⊗[K] (sha ⊗[K] sha) )
   =
-  ( sha_comul : sha →ₗ[ℚ] sha ⊗[ℚ] sha )
+  ( sha_comul : sha →ₗ[K] sha ⊗[K] sha )
   ∘ₗ
-  ( sha_mul : sha ⊗[ℚ] sha →ₗ[ℚ] sha)
+  ( sha_mul : sha ⊗[K] sha →ₗ[K] sha)
   := by
     apply Basis.ext ββ
     intro (a,b)
@@ -382,31 +389,31 @@ theorem sha_comul_mul :
           mulAA_tmul,AlgebraTens.mul,sha_mul_ββ_lemma,
           add_comm]
 
-noncomputable def βℚ : Basis (Fin 1) ℚ ℚ
-  := Basis.singleton (Fin 1) ℚ
+noncomputable def βK : Basis (Fin 1) K K
+  := Basis.singleton (Fin 1) K
 
 theorem sha_comul_unit :
-  ( sha_comul : sha →ₗ[ℚ] sha ⊗[ℚ] sha )
+  ( sha_comul : sha →ₗ[K] sha ⊗[K] sha )
   ∘ₗ
-  ( sha_unit : ℚ →ₗ[ℚ] sha )
+  ( sha_unit : K →ₗ[K] sha )
   =
-  ( (tensor_hom sha_unit sha_unit) : ℚ ⊗[ℚ] ℚ →ₗ[ℚ] sha ⊗[ℚ] sha )
+  ( (tensor_hom sha_unit sha_unit) : K ⊗[K] K →ₗ[K] sha ⊗[K] sha )
   ∘ₗ
-  ( unitor_left_inv ℚ : ℚ →ₗ[ℚ] ℚ⊗[ℚ] ℚ )
+  ( unitor_left_inv K : K →ₗ[K] K⊗[K] K )
   := by
-    apply Basis.ext βℚ
+    apply Basis.ext βK
     intro i
-    rw [βℚ,Basis.singleton_apply]
+    rw [βK,Basis.singleton_apply]
     simp [unitor_left_inv,tensor_hom,sha_unit,sha_comul,sha_comul_on_basis]
 
 theorem sha_counit_mul :
-  ( sha_counit : sha →ₗ[ℚ] ℚ )
+  ( sha_counit : sha →ₗ[K] K )
   ∘ₗ
-  ( sha_mul : sha ⊗[ℚ] sha →ₗ[ℚ] sha)
+  ( sha_mul : sha ⊗[K] sha →ₗ[K] sha)
   =
-  ( unitor_left ℚ : ℚ ⊗[ℚ] ℚ →ₗ[ℚ] ℚ )
+  ( unitor_left K : K ⊗[K] K →ₗ[K] K )
   ∘ₗ
-  ( (tensor_hom sha_counit sha_counit) : sha ⊗[ℚ] sha →ₗ[ℚ] ℚ ⊗[ℚ] ℚ )
+  ( (tensor_hom sha_counit sha_counit) : sha ⊗[K] sha →ₗ[K] K ⊗[K] K )
   := by
     apply Basis.ext ββ
     intro (a,b)
@@ -415,27 +422,27 @@ theorem sha_counit_mul :
       simp [sha_counit,sha_counit_on_basis,sha_mul_on_basis]
 
 theorem sha_counit_unit :
-  ( sha_counit : sha →ₗ[ℚ] ℚ )
+  ( sha_counit : sha →ₗ[K] K )
   ∘ₗ
-  ( sha_unit : ℚ →ₗ[ℚ] sha )
+  ( sha_unit : K →ₗ[K] sha )
   =
-  ( LinearMap.id : ℚ →ₗ[ℚ] ℚ )
+  ( LinearMap.id : K →ₗ[K] K )
   := by
-    apply Basis.ext βℚ
+    apply Basis.ext βK
     intro i
-    rw [βℚ,Basis.singleton_apply]
+    rw [βK,Basis.singleton_apply]
     simp [sha_unit, sha_counit, sha_counit_on_basis]
 
 theorem sha_anti_left :
-  ( sha_mul : sha ⊗[ℚ] sha →ₗ[ℚ] sha )
+  ( sha_mul : sha ⊗[K] sha →ₗ[K] sha )
   ∘ₗ
-  ( LinearMap.lTensorHom sha sha_anti : sha ⊗[ℚ] sha →ₗ[ℚ] sha ⊗[ℚ] sha )
+  ( LinearMap.lTensorHom sha sha_anti : sha ⊗[K] sha →ₗ[K] sha ⊗[K] sha )
   ∘ₗ
-  ( sha_comul : sha →ₗ[ℚ] sha ⊗[ℚ] sha )
+  ( sha_comul : sha →ₗ[K] sha ⊗[K] sha )
   =
-  ( sha_unit : ℚ →ₗ[ℚ] sha )
+  ( sha_unit : K →ₗ[K] sha )
   ∘ₗ
-  ( sha_counit : sha →ₗ[ℚ] ℚ )
+  ( sha_counit : sha →ₗ[K] K )
   := by
     apply Basis.ext β
     intro i
@@ -446,15 +453,15 @@ theorem sha_anti_left :
       sha_mul_ββ_lemma,sha_mul_on_basis]
 
 theorem sha_anti_right :
-  ( sha_mul : sha ⊗[ℚ] sha →ₗ[ℚ] sha )
+  ( sha_mul : sha ⊗[K] sha →ₗ[K] sha )
   ∘ₗ
-  ( LinearMap.rTensorHom sha sha_anti : sha ⊗[ℚ] sha →ₗ[ℚ] sha ⊗[ℚ] sha )
+  ( LinearMap.rTensorHom sha sha_anti : sha ⊗[K] sha →ₗ[K] sha ⊗[K] sha )
   ∘ₗ
-  ( sha_comul : sha →ₗ[ℚ] sha ⊗[ℚ] sha )
+  ( sha_comul : sha →ₗ[K] sha ⊗[K] sha )
   =
-  ( sha_unit : ℚ →ₗ[ℚ] sha )
+  ( sha_unit : K →ₗ[K] sha )
   ∘ₗ
-  ( sha_counit : sha →ₗ[ℚ] ℚ )
+  ( sha_counit : sha →ₗ[K] K )
   := by
     apply Basis.ext β
     intro i
@@ -464,7 +471,7 @@ theorem sha_anti_right :
       tensor_sub_left,
       sha_mul_ββ_lemma,sha_mul_on_basis]
 
-noncomputable instance : HopfAlgebraTens ℚ sha where
+noncomputable instance : HopfAlgebraTens K (@sha K) where
   anti := sha_anti
   comul_mul := sha_comul_mul
   comul_unit := sha_comul_unit
