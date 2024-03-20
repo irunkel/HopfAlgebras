@@ -32,6 +32,8 @@ TODOs: try to show that `Fun {G} {K}` and `Alg {K} {G}` are dual to each other, 
 
 ## Convolution.lean
 
+**Work in progress.**
+
 Let `H` be a Hopf algebra over a commutative (semi)ring `R`.
 
 `convAlg`: The convolution algebra obtained form `H`. The file provides <code>noncomputable instance : AlgebraTens R (@convAlg R _ H _ _)</code>. (I would like to write `convAlg` instead of `(@convAlg R _ H _ _)` but I do not know how.)
