@@ -27,3 +27,12 @@ There is also an explict example for the group `C2` of two elements, written mul
 
 TODOs: try to show that `Fun {G} {K}` and `Alg {K} {G}` are dual to each other, ...
 
+## Future plans
+
+Try to implement more bits and pieces of Hopf algebras. E.g. the following would be nice: 
+- convolution and uniqueness of antipode
+- the dual is a Hopf algebra
+- Hopf modules and existence and uniqueness of (co)integrals
+- various versions of Uq(sl2)
+- R-matrices and braided monoidal structure on representation category
+- ...
