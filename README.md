@@ -12,7 +12,7 @@ Implements the definition of a Hopf algebra. It starts with some linear algebra 
 
 `sha {K}`: Sweedler's four-dimensional Hopf algebra over a commutative ring `K`. So far contains the proof that it indeed defines a Hopf algebra, i.e. it provides <code>noncomputable instance : HopfAlgebraTens K (@sha K)</code>.
 
-TODOs: implement examples alongside general theory: (co)integrals, R-matrices,... Distant future: Show that representations of Sweedler's Hopf algebra in Vect are the same as those of the symmetric algebra of a two-dimensional purely odd super-vector space in SVect.
+TODOs: make the proofs less inelegant,implement examples alongside general theory: (co)integrals, R-matrices,... Distant future: Show that representations of Sweedler's Hopf algebra in Vect are the same as those of the symmetric algebra of a two-dimensional purely odd super-vector space in SVect.
 
 ## ExampleFunctionAlgebra.lean
 
@@ -21,13 +21,15 @@ Here `G` is a finite group, `K` is a commutative Ring, and the group structure e
 
 There is also an explict example for the group `C2` of two elements, written multiplicatively. (I tried to make this work via `Multiplicative (Fin 2)`, but failed, so now there is a multiplicative `C2` defines from scratch.)
 
+TODOs: This example seems much more cumbersome than the group algebra one below, try to improve the proofs.
+
 ## ExampleGroupAlgebra.lean
 
 `Alg {K} {G}`: The group algebra for a finite group `G` over a commutative ring `K` is a Hopf algebra. The group structure enters the definition of the product but not that of the coproduct. Provides <code>noncomputable instance : HopfAlgebraTens K (@Alg K G)</code>.
 
 TODOs: try to show that `Fun {G} {K}` and `Alg {K} {G}` are dual to each other, ...
 
-## Future plans
+## Further things to try
 
 Try to implement more bits and pieces of Hopf algebras. E.g. the following would be nice: 
 - convolution and uniqueness of antipode
