@@ -4,9 +4,10 @@ An attempt to implement some aspects of Hopf algebras in Lean4, including exampl
 ## Basic.lean
 
 Implements the definition of a Hopf algebra. It starts with some linear algebra helper functions (which are probably superfluous), and provides the classes:
-- <code>AlgebraTens R A</code>: Associative unital algebra on `A` over a commutative (semi-)ring `R`.
-- <code>CoalgebraTens R A</code>: Dito for coalgebras.
-- <code>HopfAlgebraTens R A</code>: Combines the previous two and adds the antipode.
+- `AlgebraTens R A`: Associative unital algebra on `A` over a commutative (semi-)ring `R`.
+- `CoalgebraTens R A`: Dito for coalgebras.
+- `BialgebraTens R A`: Combines the previous two and adds the conditions that coproduct and counit are algebra homomorphisms.
+- `HopfAlgebraTens R A`: Adds the antipode map to a bialgebra, together with its two conditions.
 
 ## ExampleSweedler.lean
 
@@ -28,6 +29,14 @@ TODOs: This example seems much more cumbersome than the group algebra one below,
 `Alg {K} {G}`: The group algebra for a finite group `G` over a commutative ring `K` is a Hopf algebra. The group structure enters the definition of the product but not that of the coproduct. Provides <code>noncomputable instance : HopfAlgebraTens K (@Alg K G)</code>.
 
 TODOs: try to show that `Fun {G} {K}` and `Alg {K} {G}` are dual to each other, ...
+
+## Convolution.lean
+
+Let `H` be a Hopf algebra over a commutative (semi)ring `R`.
+
+`convAlg`: The convolution algebra obtained form `H`. The file provides <code>noncomputable instance : AlgebraTens R (@convAlg R _ H _ _)</code>. (I would like to write `convAlg` instead of `(@convAlg R _ H _ _)` but I do not know how.)
+
+`HopfAntipodeUnique`: The theorem that the antipode of `H` is unique. The proof is that the antipode is the inverse to the identity in the convolution algebra, and hence unique.
 
 ## Further things to try
 

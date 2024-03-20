@@ -56,7 +56,7 @@ theorem Alg_unit_βK_lemma (i:Fin 1) : Alg_unit (βK i) = (β (1:G) : @Alg K G)
 
 theorem Alg_one_mul :
   ( Alg_mul : (@Alg K G) ⊗[K] (@Alg K G) →ₗ[K] (@Alg K G))
-  ∘ₗ (LinearMap.rTensorHom Alg Alg_unit : K ⊗[K] (@Alg K G)  →ₗ[K]  (@Alg K G) ⊗[K] (@Alg K G))
+  ∘ₗ (LinearMap.rTensor Alg Alg_unit : K ⊗[K] (@Alg K G)  →ₗ[K]  (@Alg K G) ⊗[K] (@Alg K G))
   ∘ₗ (unitor_left_inv Alg : (@Alg K G) →ₗ[K] (K ⊗[K] (@Alg K G)))
   =
   (LinearMap.id : (@Alg K G) →ₗ[K] (@Alg K G))
@@ -68,7 +68,7 @@ theorem Alg_one_mul :
 
 theorem Alg_mul_one :
   ( Alg_mul : (@Alg K G) ⊗[K] (@Alg K G) →ₗ[K] (@Alg K G))
-  ∘ₗ (LinearMap.lTensorHom Alg Alg_unit : (@Alg K G) ⊗[K] K  →ₗ[K]  (@Alg K G) ⊗[K] (@Alg K G))
+  ∘ₗ (LinearMap.lTensor Alg Alg_unit : (@Alg K G) ⊗[K] K  →ₗ[K]  (@Alg K G) ⊗[K] (@Alg K G))
   ∘ₗ (unitor_right_inv Alg :  (@Alg K G) →ₗ[K] ((@Alg K G) ⊗[K] K))
   =
   (LinearMap.id : (@Alg K G) →ₗ[K] (@Alg K G))
@@ -80,11 +80,11 @@ theorem Alg_mul_one :
 
 theorem Alg_mul_assoc :
   ( Alg_mul : (@Alg K G) ⊗[K] (@Alg K G) →ₗ[K] (@Alg K G))
-  ∘ₗ (LinearMap.rTensorHom Alg Alg_mul
+  ∘ₗ (LinearMap.rTensor Alg Alg_mul
       : ((@Alg K G) ⊗[K] (@Alg K G)) ⊗[K] (@Alg K G) →ₗ[K] ((@Alg K G) ⊗[K] (@Alg K G)))
   =
   ( Alg_mul : (@Alg K G) ⊗[K] (@Alg K G) →ₗ[K] (@Alg K G))
-  ∘ₗ (LinearMap.lTensorHom Alg Alg_mul
+  ∘ₗ (LinearMap.lTensor Alg Alg_mul
       : (@Alg K G) ⊗[K] ((@Alg K G) ⊗[K] (@Alg K G)) →ₗ[K] ((@Alg K G) ⊗[K] (@Alg K G)))
   ∘ₗ (TensorProduct.assoc K (@Alg K G) (@Alg K G) (@Alg K G)
       : ((@Alg K G) ⊗[K] (@Alg K G)) ⊗[K] (@Alg K G) →ₗ[K] (@Alg K G) ⊗[K] ((@Alg K G) ⊗[K] (@Alg K G)))
@@ -117,7 +117,7 @@ noncomputable def Alg_counit : (@Alg K G) →ₗ[K] K :=
 
 theorem Alg_coone_comul :
   (unitor_left Alg : K ⊗[K] (@Alg K G) →ₗ[K] (@Alg K G))
-  ∘ₗ (LinearMap.rTensorHom Alg Alg_counit : (@Alg K G) ⊗[K] (@Alg K G)  →ₗ[K]  K ⊗[K] (@Alg K G))
+  ∘ₗ (LinearMap.rTensor Alg Alg_counit : (@Alg K G) ⊗[K] (@Alg K G)  →ₗ[K]  K ⊗[K] (@Alg K G))
   ∘ₗ ( Alg_comul : (@Alg K G) →ₗ[K] (@Alg K G) ⊗[K] (@Alg K G))
   =
   (LinearMap.id : (@Alg K G) →ₗ[K] (@Alg K G))
@@ -130,7 +130,7 @@ theorem Alg_coone_comul :
 
 theorem Alg_comul_coone :
   (unitor_right Alg :  (@Alg K G) ⊗[K] K →ₗ[K] (@Alg K G))
-  ∘ₗ (LinearMap.lTensorHom Alg Alg_counit : (@Alg K G) ⊗[K] (@Alg K G)  →ₗ[K]  (@Alg K G) ⊗[K] K)
+  ∘ₗ (LinearMap.lTensor Alg Alg_counit : (@Alg K G) ⊗[K] (@Alg K G)  →ₗ[K]  (@Alg K G) ⊗[K] K)
   ∘ₗ ( Alg_comul : (@Alg K G) →ₗ[K] (@Alg K G) ⊗[K] (@Alg K G))
   =
   (LinearMap.id : (@Alg K G) →ₗ[K] (@Alg K G))
@@ -144,11 +144,11 @@ theorem Alg_comul_coone :
 theorem Alg_comul_coassoc :
   (TensorProduct.assoc K (@Alg K G) (@Alg K G) (@Alg K G)
       : ((@Alg K G) ⊗[K] (@Alg K G)) ⊗[K] (@Alg K G) →ₗ[K] (@Alg K G) ⊗[K] ((@Alg K G) ⊗[K] (@Alg K G)))
-  ∘ₗ (LinearMap.rTensorHom Alg Alg_comul
+  ∘ₗ (LinearMap.rTensor Alg Alg_comul
       : (@Alg K G) ⊗[K] (@Alg K G) →ₗ[K] ((@Alg K G) ⊗[K] (@Alg K G)) ⊗[K] (@Alg K G))
   ∘ₗ ( Alg_comul : (@Alg K G) →ₗ[K] (@Alg K G) ⊗[K] (@Alg K G))
   =
-  (LinearMap.lTensorHom Alg Alg_comul
+  (LinearMap.lTensor Alg Alg_comul
       : (@Alg K G) ⊗[K] (@Alg K G) →ₗ[K] (@Alg K G) ⊗[K] ((@Alg K G) ⊗[K] (@Alg K G)))
   ∘ₗ ( Alg_comul : (@Alg K G) →ₗ[K] (@Alg K G) ⊗[K] (@Alg K G))
   := by
@@ -175,7 +175,7 @@ noncomputable def Alg_anti : (@Alg K G) →ₗ[K] (@Alg K G) :=
 theorem Alg_comul_mul :
   ( mulAA : ((@Alg K G) ⊗[K] (@Alg K G)) ⊗[K] ((@Alg K G) ⊗[K] (@Alg K G)) →ₗ[K] (@Alg K G) ⊗[K] (@Alg K G) )
   ∘ₗ
-  ( tensor_hom Alg_comul Alg_comul : (@Alg K G) ⊗[K] (@Alg K G) →ₗ[K] ((@Alg K G) ⊗[K] (@Alg K G)) ⊗[K] ((@Alg K G) ⊗[K] (@Alg K G)) )
+  ( TensorProduct.map Alg_comul Alg_comul : (@Alg K G) ⊗[K] (@Alg K G) →ₗ[K] ((@Alg K G) ⊗[K] (@Alg K G)) ⊗[K] ((@Alg K G) ⊗[K] (@Alg K G)) )
   =
   ( Alg_comul : (@Alg K G) →ₗ[K] (@Alg K G) ⊗[K] (@Alg K G) )
   ∘ₗ
@@ -183,7 +183,7 @@ theorem Alg_comul_mul :
   := by
     apply Basis.ext ββ
     intro (g,h)
-    simp [ββ,tensor_hom,
+    simp [ββ,
       Alg_mul_ββ_lemma,Alg_mul_on_basis]
     simp [Alg_comul,Alg_comul_on_basis]
     simp [mulAA_tmul,AlgebraTens.mul]
@@ -194,13 +194,13 @@ theorem Alg_comul_unit :
   ∘ₗ
   ( Alg_unit : K →ₗ[K] (@Alg K G) )
   =
-  ( (tensor_hom Alg_unit Alg_unit) : K ⊗[K] K →ₗ[K] (@Alg K G) ⊗[K] (@Alg K G) )
+  ( (TensorProduct.map Alg_unit Alg_unit) : K ⊗[K] K →ₗ[K] (@Alg K G) ⊗[K] (@Alg K G) )
   ∘ₗ
   ( unitor_left_inv K : K →ₗ[K] K⊗[K] K )
   := by
     apply Basis.ext βK
     intro i
-    simp [unitor_left_inv,tensor_hom]
+    simp [unitor_left_inv]
     simp [Alg_unit_βK_lemma,Alg_unit_1_lemma]
     simp [Alg_comul,Alg_comul_on_basis]
 
@@ -211,11 +211,11 @@ theorem Alg_counit_mul :
   =
   ( unitor_left K : K ⊗[K] K →ₗ[K] K )
   ∘ₗ
-  ( (tensor_hom Alg_counit Alg_counit) : (@Alg K G) ⊗[K] (@Alg K G) →ₗ[K] K ⊗[K] K )
+  ( (TensorProduct.map Alg_counit Alg_counit) : (@Alg K G) ⊗[K] (@Alg K G) →ₗ[K] K ⊗[K] K )
   := by
     apply Basis.ext ββ
     intro (g,h)
-    simp [unitor_left,ββ,tensor_hom]
+    simp [unitor_left,ββ]
     simp [Alg_mul_ββ_lemma,Alg_mul_on_basis]
     simp [Alg_counit,Alg_counit_on_basis]
 
@@ -235,7 +235,7 @@ theorem Alg_counit_unit :
 theorem Alg_anti_left :
   ( Alg_mul : (@Alg K G) ⊗[K] (@Alg K G) →ₗ[K] (@Alg K G) )
   ∘ₗ
-  ( LinearMap.lTensorHom Alg Alg_anti : (@Alg K G) ⊗[K] (@Alg K G) →ₗ[K] (@Alg K G) ⊗[K] (@Alg K G) )
+  ( LinearMap.lTensor Alg Alg_anti : (@Alg K G) ⊗[K] (@Alg K G) →ₗ[K] (@Alg K G) ⊗[K] (@Alg K G) )
   ∘ₗ
   ( Alg_comul : (@Alg K G) →ₗ[K] (@Alg K G) ⊗[K] (@Alg K G) )
   =
@@ -253,7 +253,7 @@ theorem Alg_anti_left :
 theorem Alg_anti_right :
   ( Alg_mul : (@Alg K G) ⊗[K] (@Alg K G) →ₗ[K] (@Alg K G) )
   ∘ₗ
-  ( LinearMap.rTensorHom Alg Alg_anti : (@Alg K G) ⊗[K] (@Alg K G) →ₗ[K] (@Alg K G) ⊗[K] (@Alg K G) )
+  ( LinearMap.rTensor Alg Alg_anti : (@Alg K G) ⊗[K] (@Alg K G) →ₗ[K] (@Alg K G) ⊗[K] (@Alg K G) )
   ∘ₗ
   ( Alg_comul : (@Alg K G) →ₗ[K] (@Alg K G) ⊗[K] (@Alg K G) )
   =
@@ -268,13 +268,22 @@ theorem Alg_anti_right :
     simp [Alg_anti,Alg_anti_on_basis]
     simp [Alg_mul_ββ_lemma,Alg_mul_on_basis]
 
-noncomputable instance : HopfAlgebraTens K (@Alg K G) where
-  anti := Alg_anti
+noncomputable instance : BialgebraTens K (@Alg K G) where
   comul_mul := Alg_comul_mul
   comul_unit := Alg_comul_unit
   counit_mul := Alg_counit_mul
   counit_unit := Alg_counit_unit
-  anti_left := Alg_anti_left
-  anti_right := Alg_anti_right
+
+open AlgebraTens CoalgebraTens
+
+noncomputable instance : HopfAlgebraTens K (@Alg K G) where
+  anti := Alg_anti
+  hasAntipodeProp :=
+  {
+    left := by
+      simp [mul,comul,unit,counit]; rw[Alg_anti_left]
+    right := by
+      simp [mul,comul,unit,counit]; rw[Alg_anti_right]
+  }
 
 end GroupAlgebra

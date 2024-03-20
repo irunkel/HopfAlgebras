@@ -9,29 +9,8 @@ open scoped TensorProduct
 
 /- --- Linear algebra helper definitions --- -/
 
-/- shortcut for tensor product of two linear maps -/
--- TODO: This is probably in the library and I missed it
-noncomputable def tensor_hom {R:Type} {M1 M2 N1 N2:Type}
-  [CommSemiring R]
-  [AddCommMonoid M1]
-  [AddCommMonoid M2]
-  [AddCommMonoid N1]
-  [AddCommMonoid N2]
-  [Module R M1]
-  [Module R M2]
-  [Module R N1]
-  [Module R N2]
-  (f : M1 →ₗ[R] N1)
-  (g : M2 →ₗ[R] N2)
-  :
-  M1 ⊗[R] M2 →ₗ[R] N1 ⊗[R] N2
-  := (
-    (LinearMap.lTensorHom N1 g : N1 ⊗[R] M2 →ₗ[R] N1 ⊗[R] N2)
-    ∘ₗ
-    (LinearMap.rTensorHom M2 f : M1 ⊗[R] M2 →ₗ[R] N1 ⊗[R] M2)
-  )
 
-/- shortcuts for unitors -/
+/- alternate names for unitors -/
 
 noncomputable def unitor_left
   {R:Type} (M:Type)
@@ -43,6 +22,13 @@ noncomputable def unitor_left_inv
   [CommSemiring R] [AddCommMonoid M] [Module R M] :
   M →ₗ[R] R ⊗[R] M := LinearEquiv.symm (TensorProduct.lid R M)
 
+theorem unitor_left_inv_is_inv
+  {R:Type} (M:Type)
+  [CommSemiring R] [AddCommMonoid M] [Module R M] :
+  unitor_left_inv M ∘ₗ unitor_left M = (LinearMap.id : R ⊗[R] M →ₗ[R] R ⊗[R] M)
+  := by
+    simp [unitor_left_inv,unitor_left]
+
 noncomputable def unitor_right
   {R:Type} (M:Type)
   [CommSemiring R] [AddCommMonoid M] [Module R M] :
@@ -52,6 +38,13 @@ noncomputable def unitor_right_inv
   {R:Type} (M:Type)
   [CommSemiring R] [AddCommMonoid M] [Module R M] :
   M →ₗ[R] M ⊗[R] R := LinearEquiv.symm (TensorProduct.rid R M)
+
+theorem unitor_right_inv_is_inv
+  {R:Type} (M:Type)
+  [CommSemiring R] [AddCommMonoid M] [Module R M] :
+  unitor_right_inv M ∘ₗ unitor_right M = (LinearMap.id : M ⊗[R] R →ₗ[R] M ⊗[R] R)
+  := by
+    simp [unitor_right_inv,unitor_right]
 
 /- --- Algebra definition --- -/
 /- This defines an associative unital algebra in terms of
@@ -68,25 +61,25 @@ class AlgebraTens (R:Type) (A:Type)
 
   one_mul :
     (mul : A ⊗[R] A →ₗ[R] A)
-    ∘ₗ (LinearMap.rTensorHom A unit : R ⊗[R] A  →ₗ[R]  A ⊗[R] A)
+    ∘ₗ (LinearMap.rTensor A unit : R ⊗[R] A  →ₗ[R]  A ⊗[R] A)
     ∘ₗ (unitor_left_inv A :  A →ₗ[R] (R ⊗[R] A))
     =
     (LinearMap.id : A →ₗ[R] A)
 
   mul_one :
     (mul : A ⊗[R] A →ₗ[R] A)
-    ∘ₗ (LinearMap.lTensorHom A unit : A ⊗[R] R  →ₗ[R]  A ⊗[R] A)
+    ∘ₗ (LinearMap.lTensor A unit : A ⊗[R] R  →ₗ[R]  A ⊗[R] A)
     ∘ₗ (unitor_right_inv A :  A →ₗ[R] (A ⊗[R] R))
     =
     (LinearMap.id : A →ₗ[R] A)
 
   mul_assoc :
     (mul : A ⊗[R] A →ₗ[R] A)
-    ∘ₗ (LinearMap.rTensorHom A mul
+    ∘ₗ (LinearMap.rTensor A mul
         : (A ⊗[R] A) ⊗[R] A →ₗ[R] (A ⊗[R] A))
     =
     (mul : A ⊗[R] A →ₗ[R] A)
-    ∘ₗ (LinearMap.lTensorHom A mul
+    ∘ₗ (LinearMap.lTensor A mul
         : A ⊗[R] (A ⊗[R] A) →ₗ[R] (A ⊗[R] A))
     ∘ₗ (TensorProduct.assoc R A A A
         : (A ⊗[R] A) ⊗[R] A →ₗ[R] A ⊗[R] (A ⊗[R] A))
@@ -102,14 +95,14 @@ class CoalgebraTens (R:Type) (A:Type)
 
   coone_comul :
     (unitor_left A : R ⊗[R] A →ₗ[R] A)
-    ∘ₗ (LinearMap.rTensorHom A counit : A ⊗[R] A  →ₗ[R]  R ⊗[R] A)
+    ∘ₗ (LinearMap.rTensor A counit : A ⊗[R] A  →ₗ[R]  R ⊗[R] A)
     ∘ₗ (comul : A →ₗ[R] A ⊗[R] A)
     =
     (LinearMap.id : A →ₗ[R] A)
 
   comul_coone :
     (unitor_right A :  A ⊗[R] R →ₗ[R] A)
-    ∘ₗ (LinearMap.lTensorHom A counit : A ⊗[R] A  →ₗ[R]  A ⊗[R] R)
+    ∘ₗ (LinearMap.lTensor A counit : A ⊗[R] A  →ₗ[R]  A ⊗[R] R)
     ∘ₗ (comul : A →ₗ[R] A ⊗[R] A)
     =
     (LinearMap.id : A →ₗ[R] A)
@@ -117,11 +110,11 @@ class CoalgebraTens (R:Type) (A:Type)
   comul_coassoc :
     (TensorProduct.assoc R A A A
         : (A ⊗[R] A) ⊗[R] A →ₗ[R] A ⊗[R] (A ⊗[R] A))
-    ∘ₗ (LinearMap.rTensorHom A comul
+    ∘ₗ (LinearMap.rTensor A comul
         : A ⊗[R] A →ₗ[R] (A ⊗[R] A) ⊗[R] A)
     ∘ₗ (comul : A →ₗ[R] A ⊗[R] A)
     =
-    (LinearMap.lTensorHom A comul
+    (LinearMap.lTensor A comul
         : A ⊗[R] A →ₗ[R] A ⊗[R] (A ⊗[R] A))
     ∘ₗ (comul : A →ₗ[R] A ⊗[R] A)
 
@@ -149,19 +142,19 @@ noncomputable def mulAA {R:Type} {A:Type}
     (A ⊗[R] A) ⊗[R] (A ⊗[R] A) →ₗ[R] ((A ⊗[R] A) ⊗[R] A) ⊗[R] A
     )
   let ass2equiv := TensorProduct.assoc R A A A
-  let ass2_id := (LinearMap.rTensorHom A ass2equiv :
+  let ass2_id := (LinearMap.rTensor A ass2equiv :
     ((A ⊗[R] A) ⊗[R] A) ⊗[R] A →ₗ[R] (A ⊗[R] (A ⊗[R] A)) ⊗[R] A
     );
-  let ass2inv_id := (LinearMap.rTensorHom A (LinearEquiv.symm ass2equiv) :
+  let ass2inv_id := (LinearMap.rTensor A (LinearEquiv.symm ass2equiv) :
     (A ⊗[R] (A ⊗[R] A)) ⊗[R] A →ₗ[R] ((A ⊗[R] A) ⊗[R] A) ⊗[R] A
     );
   let swap := (TensorProduct.comm R A A :
     A ⊗[R] A →ₗ[R] A ⊗[R] A
     );
-  let id_swap_id := (LinearMap.rTensorHom A (LinearMap.lTensorHom A swap) :
+  let id_swap_id := (LinearMap.rTensor A (LinearMap.lTensor A swap) :
     (A ⊗[R] (A ⊗[R] A)) ⊗[R] A →ₗ[R] (A ⊗[R] (A ⊗[R] A)) ⊗[R] A
     );
-  let mulmul := (tensor_hom AlgebraTens.mul AlgebraTens.mul:
+  let mulmul := (TensorProduct.map AlgebraTens.mul AlgebraTens.mul:
     (A ⊗[R] A) ⊗[R] (A ⊗[R] A) →ₗ[R] A ⊗[R] A
     )
 
@@ -187,26 +180,21 @@ theorem mulAA_tmul {R:Type} {A:Type}
   mulAA ( (a ⊗ₜ[R] b) ⊗ₜ[R] (c ⊗ₜ[R] d) )
   =
   ( AlgebraTens.mul (a ⊗ₜ[R] c) ) ⊗ₜ[R] (AlgebraTens.mul (b ⊗ₜ[R] d) )
-  := by
-    simp [mulAA,tensor_hom]
+  := by simp [mulAA]
 
-/- --- Hopf algebra definition --- -/
+/- --- Bi- and Hopf algebra definition --- -/
 
-/- could have done bialgebras as an intermediate step as in
-   mathlib, may do that later anyway -/
-class HopfAlgebraTens (R:Type) (A:Type)
+class BialgebraTens (R:Type) (A:Type)
   [CommSemiring R]
   [AddCommMonoid A]
   [Module R A]
 extends AlgebraTens R A, CoalgebraTens R A where
 
-  anti : A →ₗ[R] A
-
   -- comul is algebra hom
   comul_mul :
   ( mulAA : (A ⊗[R] A) ⊗[R] (A ⊗[R] A) →ₗ[R] A ⊗[R] A )
   ∘ₗ
-  ( tensor_hom comul comul : A ⊗[R] A →ₗ[R] (A ⊗[R] A) ⊗[R] (A ⊗[R] A) )
+  ( TensorProduct.map comul comul : A ⊗[R] A →ₗ[R] (A ⊗[R] A) ⊗[R] (A ⊗[R] A) )
   =
   ( comul : A →ₗ[R] A ⊗[R] A )
   ∘ₗ
@@ -217,7 +205,7 @@ extends AlgebraTens R A, CoalgebraTens R A where
   ∘ₗ
   ( unit : R →ₗ[R] A )
   =
-  ( (tensor_hom unit unit) : R ⊗[R] R →ₗ[R] A ⊗[R] A )
+  ( (TensorProduct.map unit unit) : R ⊗[R] R →ₗ[R] A ⊗[R] A )
   ∘ₗ
   ( unitor_left_inv R : R →ₗ[R] R⊗[R] R )
 
@@ -229,7 +217,7 @@ extends AlgebraTens R A, CoalgebraTens R A where
   =
   ( unitor_left R : R ⊗[R] R →ₗ[R] R )
   ∘ₗ
-  ( (tensor_hom counit counit) : A ⊗[R] A →ₗ[R] R ⊗[R] R )
+  ( (TensorProduct.map counit counit) : A ⊗[R] A →ₗ[R] R ⊗[R] R )
 
   counit_unit :
   ( counit : A →ₗ[R] R )
@@ -238,11 +226,19 @@ extends AlgebraTens R A, CoalgebraTens R A where
   =
   ( LinearMap.id : R →ₗ[R] R )
 
-  -- antipode axioms
-  anti_left :
+open AlgebraTens CoalgebraTens BialgebraTens
+
+structure AntipodeProp {R:Type} {A:Type}
+  [CommSemiring R]
+  [AddCommMonoid A]
+  [Module R A]
+  [BialgebraTens R A]
+  (anti : A →ₗ[R] A) where
+
+  left :
   ( mul : A ⊗[R] A →ₗ[R] A )
   ∘ₗ
-  ( LinearMap.lTensorHom A anti : A ⊗[R] A →ₗ[R] A ⊗[R] A )
+  ( LinearMap.lTensor A anti : A ⊗[R] A →ₗ[R] A ⊗[R] A )
   ∘ₗ
   ( comul : A →ₗ[R] A ⊗[R] A )
   =
@@ -250,15 +246,23 @@ extends AlgebraTens R A, CoalgebraTens R A where
   ∘ₗ
   ( counit : A →ₗ[R] R )
 
-  anti_right :
+  right :
   ( mul : A ⊗[R] A →ₗ[R] A )
   ∘ₗ
-  ( LinearMap.rTensorHom A anti : A ⊗[R] A →ₗ[R] A ⊗[R] A )
+  ( LinearMap.rTensor A anti : A ⊗[R] A →ₗ[R] A ⊗[R] A )
   ∘ₗ
   ( comul : A →ₗ[R] A ⊗[R] A )
   =
   ( unit : R →ₗ[R] A )
   ∘ₗ
   ( counit : A →ₗ[R] R )
+
+class HopfAlgebraTens (R:Type) (A:Type)
+  [CommSemiring R]
+  [AddCommMonoid A]
+  [Module R A]
+extends BialgebraTens R A where
+  anti : A →ₗ[R] A
+  hasAntipodeProp : AntipodeProp anti
 
 end Hopf

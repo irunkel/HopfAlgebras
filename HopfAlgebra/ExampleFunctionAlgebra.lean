@@ -3,7 +3,6 @@ import Mathlib.LinearAlgebra.StdBasis
 import Mathlib.LinearAlgebra.TensorProduct.Basic
 import Mathlib.LinearAlgebra.TensorProduct.Basis
 import HopfAlgebra.Basic
-import Mathlib.Algebra.Group.Basic
 
 open BigOperators
 open Finset
@@ -42,6 +41,8 @@ noncomputable def βββ : Basis ((G × G) × G) K
 noncomputable def Fun_mul_on_basis : G × G → (@Fun G K) :=
   fun (a,b) ↦ if a=b then β a else 0
 
+/- TODO: Is there any way to just write Fun rather than always (@Fun G K)?
+   It seems to produce "typeclass instance problem is stuck"-/
 noncomputable def Fun_mul : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K) :=
   Basis.constr ββ K Fun_mul_on_basis
 
@@ -53,11 +54,11 @@ theorem Fun_mul_ββ_lemma  {g h : G} : Fun_mul ((β g) ⊗ₜ[K] (β h)) = Fun_
 
 theorem Fun_mul_assoc :
     (Fun_mul : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K))
-    ∘ₗ (LinearMap.rTensorHom Fun Fun_mul
+    ∘ₗ (LinearMap.rTensor Fun Fun_mul
         : ((@Fun G K) ⊗[K] (@Fun G K)) ⊗[K] (@Fun G K) →ₗ[K] ((@Fun G K) ⊗[K] (@Fun G K)))
     =
     (Fun_mul : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K))
-    ∘ₗ (LinearMap.lTensorHom Fun Fun_mul
+    ∘ₗ (LinearMap.lTensor Fun Fun_mul
         : (@Fun G K) ⊗[K] ((@Fun G K) ⊗[K] (@Fun G K)) →ₗ[K] ((@Fun G K) ⊗[K] (@Fun G K)))
     ∘ₗ (TensorProduct.assoc K (@Fun G K) (@Fun G K) (@Fun G K)
         : ((@Fun G K) ⊗[K] (@Fun G K)) ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K) ⊗[K] ((@Fun G K) ⊗[K] (@Fun G K)))
@@ -102,7 +103,7 @@ noncomputable def Fun_unit : K →ₗ[K] (@Fun G K) :=
 
 theorem Fun_one_mul :
     (Fun_mul : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K))
-    ∘ₗ (LinearMap.rTensorHom Fun Fun_unit : K ⊗[K] (@Fun G K)  →ₗ[K]  (@Fun G K) ⊗[K] (@Fun G K))
+    ∘ₗ (LinearMap.rTensor Fun Fun_unit : K ⊗[K] (@Fun G K)  →ₗ[K]  (@Fun G K) ⊗[K] (@Fun G K))
     ∘ₗ (unitor_left_inv Fun : (@Fun G K) →ₗ[K] (K ⊗[K] (@Fun G K)))
     =
     (LinearMap.id : (@Fun G K) →ₗ[K] (@Fun G K))
@@ -115,7 +116,7 @@ theorem Fun_one_mul :
 
 theorem Fun_mul_one :
     (Fun_mul : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K))
-    ∘ₗ (LinearMap.lTensorHom Fun Fun_unit : (@Fun G K) ⊗[K] K  →ₗ[K]  (@Fun G K) ⊗[K] (@Fun G K))
+    ∘ₗ (LinearMap.lTensor Fun Fun_unit : (@Fun G K) ⊗[K] K  →ₗ[K]  (@Fun G K) ⊗[K] (@Fun G K))
     ∘ₗ (unitor_right_inv Fun :  (@Fun G K) →ₗ[K] ((@Fun G K) ⊗[K] K))
     =
     (LinearMap.id : (@Fun G K) →ₗ[K] (@Fun G K))
@@ -164,7 +165,7 @@ theorem mul_inv_one_iff_eq_inv' (g h : G) :
 
 theorem Fun_coone_comul :
   (unitor_left Fun : K ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K))
-  ∘ₗ (LinearMap.rTensorHom Fun Fun_counit : (@Fun G K) ⊗[K] (@Fun G K)  →ₗ[K]  K ⊗[K] (@Fun G K))
+  ∘ₗ (LinearMap.rTensor Fun Fun_counit : (@Fun G K) ⊗[K] (@Fun G K)  →ₗ[K]  K ⊗[K] (@Fun G K))
   ∘ₗ (Fun_comul : (@Fun G K) →ₗ[K] (@Fun G K) ⊗[K] (@Fun G K))
   =
   (LinearMap.id : (@Fun G K) →ₗ[K] (@Fun G K))
@@ -190,7 +191,7 @@ theorem Fun_coone_comul :
 
 theorem Fun_comul_coone :
   (unitor_right Fun :  (@Fun G K) ⊗[K] K →ₗ[K] (@Fun G K))
-  ∘ₗ (LinearMap.lTensorHom Fun Fun_counit : (@Fun G K) ⊗[K] (@Fun G K)  →ₗ[K]  (@Fun G K) ⊗[K] K)
+  ∘ₗ (LinearMap.lTensor Fun Fun_counit : (@Fun G K) ⊗[K] (@Fun G K)  →ₗ[K]  (@Fun G K) ⊗[K] K)
   ∘ₗ (Fun_comul : (@Fun G K) →ₗ[K] (@Fun G K) ⊗[K] (@Fun G K))
   =
   (LinearMap.id : (@Fun G K) →ₗ[K] (@Fun G K))
@@ -232,11 +233,11 @@ theorem group_sum_inv {α : Type} [AddCommMonoid α] (f:G → α) :
 theorem Fun_comul_coassoc :
   (TensorProduct.assoc K (@Fun G K) (@Fun G K) (@Fun G K)
       : ((@Fun G K) ⊗[K] (@Fun G K)) ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K) ⊗[K] ((@Fun G K) ⊗[K] (@Fun G K)))
-  ∘ₗ (LinearMap.rTensorHom Fun Fun_comul
+  ∘ₗ (LinearMap.rTensor Fun Fun_comul
       : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] ((@Fun G K) ⊗[K] (@Fun G K)) ⊗[K] (@Fun G K))
   ∘ₗ (Fun_comul : (@Fun G K) →ₗ[K] (@Fun G K) ⊗[K] (@Fun G K))
   =
-  (LinearMap.lTensorHom Fun Fun_comul
+  (LinearMap.lTensor Fun Fun_comul
       : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K) ⊗[K] ((@Fun G K) ⊗[K] (@Fun G K)))
   ∘ₗ (Fun_comul : (@Fun G K) →ₗ[K] (@Fun G K) ⊗[K] (@Fun G K))
   := by
@@ -295,7 +296,7 @@ theorem tensor_right_if (g:G) (a b : G → (@Fun G K)) :
 theorem Fun_comul_mul :
   ( mulAA : ((@Fun G K) ⊗[K] (@Fun G K)) ⊗[K] ((@Fun G K) ⊗[K] (@Fun G K)) →ₗ[K] (@Fun G K) ⊗[K] (@Fun G K) )
   ∘ₗ
-  ( tensor_hom Fun_comul Fun_comul : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] ((@Fun G K) ⊗[K] (@Fun G K)) ⊗[K] ((@Fun G K) ⊗[K] (@Fun G K)) )
+  ( TensorProduct.map Fun_comul Fun_comul : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] ((@Fun G K) ⊗[K] (@Fun G K)) ⊗[K] ((@Fun G K) ⊗[K] (@Fun G K)) )
   =
   ( Fun_comul : (@Fun G K) →ₗ[K] (@Fun G K) ⊗[K] (@Fun G K) )
   ∘ₗ
@@ -305,7 +306,7 @@ theorem Fun_comul_mul :
     intro (g,h)
     simp [Fun_mul]
     simp [Fun_mul_on_basis]
-    simp [Fun_comul,ββ,tensor_hom,Fun_comul_on_basis]
+    simp [Fun_comul,ββ,Fun_comul_on_basis]
     simp [TensorProduct.sum_tmul]
     simp [TensorProduct.tmul_sum]
     simp [mulAA_tmul]
@@ -342,14 +343,14 @@ theorem Fun_comul_unit :
   ∘ₗ
   ( Fun_unit : K →ₗ[K] (@Fun G K) )
   =
-  ( (tensor_hom Fun_unit Fun_unit) : K ⊗[K] K →ₗ[K] (@Fun G K) ⊗[K] (@Fun G K) )
+  ( (TensorProduct.map Fun_unit Fun_unit) : K ⊗[K] K →ₗ[K] (@Fun G K) ⊗[K] (@Fun G K) )
   ∘ₗ
   ( unitor_left_inv K : K →ₗ[K] K⊗[K] K )
   := by
     apply Basis.ext βK
     intro i
     rw [βK,Basis.singleton_apply]
-    simp [unitor_left_inv,tensor_hom]
+    simp [unitor_left_inv]
     simp [Fun_unit,Fun_unit_el_bas,βK]
     simp [Fun_comul,Fun_comul_on_basis]
     simp [TensorProduct.sum_tmul,TensorProduct.tmul_sum]
@@ -371,14 +372,14 @@ theorem Fun_counit_mul :
   =
   ( unitor_left K : K ⊗[K] K →ₗ[K] K )
   ∘ₗ
-  ( (tensor_hom Fun_counit Fun_counit) : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] K ⊗[K] K )
+  ( (TensorProduct.map Fun_counit Fun_counit) : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] K ⊗[K] K )
   := by
     apply Basis.ext ββ
     intro (g,h)
     simp [Fun_mul]
     simp [Fun_mul_on_basis] -- If one combines this with the privous one it introduces a sum for some reason
     simp [Fun_counit,Fun_counit_on_basis]
-    simp [β,ββ,unitor_left,tensor_hom,Fun_counit,Fun_counit_on_basis]
+    simp [β,ββ,unitor_left,Fun_counit,Fun_counit_on_basis]
     cases (eq_or_ne g 1) with
     | inl a1 =>
         simp [a1]
@@ -411,7 +412,7 @@ theorem Fun_counit_unit :
 theorem Fun_anti_left :
   ( Fun_mul : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K) )
   ∘ₗ
-  ( LinearMap.lTensorHom Fun Fun_anti : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K) ⊗[K] (@Fun G K) )
+  ( LinearMap.lTensor Fun Fun_anti : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K) ⊗[K] (@Fun G K) )
   ∘ₗ
   ( Fun_comul : (@Fun G K) →ₗ[K] (@Fun G K) ⊗[K] (@Fun G K) )
   =
@@ -433,7 +434,7 @@ theorem Fun_anti_left :
 theorem Fun_anti_right :
   ( Fun_mul : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K) )
   ∘ₗ
-  ( LinearMap.rTensorHom Fun Fun_anti : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K) ⊗[K] (@Fun G K) )
+  ( LinearMap.rTensor Fun Fun_anti : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K) ⊗[K] (@Fun G K) )
   ∘ₗ
   ( Fun_comul : (@Fun G K) →ₗ[K] (@Fun G K) ⊗[K] (@Fun G K) )
   =
@@ -452,14 +453,23 @@ theorem Fun_anti_right :
     | inl a1 => simp [a1]; rw [group_sum_inv]; simp
     | inr a1 => simp [a1]
 
-noncomputable instance instHopfAlgebraTens : HopfAlgebraTens K (@Fun G K) where
-  anti := Fun_anti
+noncomputable instance : BialgebraTens K (@Fun G K) where
   comul_mul := Fun_comul_mul
   comul_unit := Fun_comul_unit
   counit_mul := Fun_counit_mul
   counit_unit := Fun_counit_unit
-  anti_left := Fun_anti_left
-  anti_right := Fun_anti_right
+
+open AlgebraTens CoalgebraTens
+
+noncomputable instance : HopfAlgebraTens K (@Fun G K) where
+  anti := Fun_anti
+  hasAntipodeProp :=
+  {
+    left := by
+      simp [mul,comul,unit,counit]; rw[Fun_anti_left]
+    right := by
+      simp [mul,comul,unit,counit]; rw[Fun_anti_right]
+  }
 
 
 /- --- Function algebra for C2 as an example --- -/

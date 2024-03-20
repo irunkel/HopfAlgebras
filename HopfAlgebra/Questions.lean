@@ -2,7 +2,7 @@ import Mathlib.LinearAlgebra.TensorProduct.Basic
 
 namespace Questions
 
---- QUESTION 1 ---
+--- QUESTION 1 : def vs abbrev ---
 
 /- I wanted to make a vector space with basis vectors that
    have specific names I wanted to assign. E.g. -/
@@ -77,3 +77,13 @@ instance : Group C4 := inferInstanceAs (Group (Multiplicative (Fin 4)))
 instance : Finite C4 := inferInstanceAs (Finite (Fin 4))
 abbrev FunC4 := @Fun C4 ℚ
 -/
+
+variable {R:Type} [CommSemiring R]
+variable {H:Type} [AddCommMonoid H] [Module R H]
+def convAlg : Type := LinearMap (RingHom.id R) H H
+
+#check convAlg          -- works
+--#check (@convAlg R H)   -- fails (H has wrong Type)
+#check (@convAlg R _ H _) --works
+instance : AddCommMonoid (@convAlg R _ H _ _) := inferInstanceAs (AddCommMonoid (LinearMap (RingHom.id R) H H))
+      -- works

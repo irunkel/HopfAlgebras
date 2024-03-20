@@ -160,11 +160,11 @@ theorem tensor_sub_left (a b : (@sha K)): (-a) ⊗ₜ[K] b = - (a ⊗ₜ[K] b)
 
 theorem sha_mul_assoc :
   (sha_mul
-  ∘ₗ (LinearMap.rTensorHom sha sha_mul) :
+  ∘ₗ (LinearMap.rTensor sha sha_mul) :
   (sha ⊗[K] sha) ⊗[K] sha →ₗ[K] sha)
   =
   (sha_mul
-  ∘ₗ (LinearMap.lTensorHom sha sha_mul)
+  ∘ₗ (LinearMap.lTensor sha sha_mul)
   ∘ₗ (TensorProduct.assoc K (@sha K) (@sha K) (@sha K))
   :
   (sha ⊗[K] sha) ⊗[K] sha →ₗ[K] sha)
@@ -205,7 +205,7 @@ noncomputable def sha_g : K →ₗ[K] (@sha K) := {
 
 theorem sha_one_mul :
   ( (sha_mul : sha ⊗[K] sha →ₗ[K] sha)
-  ∘ₗ (LinearMap.rTensorHom sha sha_unit : K ⊗[K] sha  →ₗ[K]  sha ⊗[K] sha)
+  ∘ₗ (LinearMap.rTensor sha sha_unit : K ⊗[K] sha  →ₗ[K]  sha ⊗[K] sha)
   ∘ₗ (unitor_left_inv sha :  sha →ₗ[K] (K ⊗[K] sha))
   : sha →ₗ[K] sha)
   =
@@ -219,7 +219,7 @@ theorem sha_one_mul :
 
 theorem sha_mul_one :
   ( (sha_mul : sha ⊗[K] sha →ₗ[K] sha)
-  ∘ₗ (LinearMap.lTensorHom sha sha_unit : sha ⊗[K] K  →ₗ[K]  sha ⊗[K] sha)
+  ∘ₗ (LinearMap.lTensor sha sha_unit : sha ⊗[K] K  →ₗ[K]  sha ⊗[K] sha)
   ∘ₗ (unitor_right_inv sha :  sha →ₗ[K] (sha ⊗[K] K))
   : sha →ₗ[K] sha)
   =
@@ -267,17 +267,17 @@ noncomputable def sha_counit : (@sha K)  →ₗ[K] K :=
   simplifier?
 -/
 example :
-  ( mulAA ∘ₗ (tensor_hom sha_comul sha_comul) ) (βg ⊗ₜ[K] βx)
+  ( mulAA ∘ₗ (TensorProduct.map sha_comul sha_comul) ) (βg ⊗ₜ[K] βx)
   = sha_comul βgx
   := by
-    simp [tensor_hom,sha_comul,sha_comul_on_basis,
+    simp [sha_comul,sha_comul_on_basis,
       TensorProduct.tmul_add,mulAA_tmul,AlgebraTens.mul,
       sha_mul_ββ_lemma,sha_mul_on_basis]
 
 
 theorem sha_coone_comul  :
   (unitor_left sha :  K ⊗[K] sha →ₗ[K] sha)
-  ∘ₗ (LinearMap.rTensorHom sha sha_counit : sha ⊗[K] sha  →ₗ[K]  K ⊗[K] sha)
+  ∘ₗ (LinearMap.rTensor sha sha_counit : sha ⊗[K] sha  →ₗ[K]  K ⊗[K] sha)
   ∘ₗ (sha_comul : sha →ₗ[K] sha ⊗[K] sha)
   =
   (LinearMap.id : sha →ₗ[K] sha)
@@ -290,7 +290,7 @@ theorem sha_coone_comul  :
 
 theorem sha_comul_coone :
   (unitor_right sha :  sha ⊗[K] K →ₗ[K] sha)
-  ∘ₗ (LinearMap.lTensorHom sha sha_counit : sha ⊗[K] sha  →ₗ[K]  sha ⊗[K] K)
+  ∘ₗ (LinearMap.lTensor sha sha_counit : sha ⊗[K] sha  →ₗ[K]  sha ⊗[K] K)
   ∘ₗ (sha_comul : sha →ₗ[K] sha ⊗[K] sha)
   =
   (LinearMap.id : sha →ₗ[K] sha)
@@ -304,11 +304,11 @@ theorem sha_comul_coone :
 theorem sha_comul_coassoc :
   (TensorProduct.assoc K (@sha K) (@sha K) (@sha K)
       : (sha ⊗[K] sha) ⊗[K] sha →ₗ[K] sha ⊗[K] (sha ⊗[K] sha))
-  ∘ₗ (LinearMap.rTensorHom sha sha_comul
+  ∘ₗ (LinearMap.rTensor sha sha_comul
       : sha ⊗[K] sha →ₗ[K] (sha ⊗[K] sha) ⊗[K] sha)
   ∘ₗ (sha_comul : sha →ₗ[K] sha ⊗[K] sha)
   =
-  (LinearMap.lTensorHom sha sha_comul
+  (LinearMap.lTensor sha sha_comul
       : sha ⊗[K] sha →ₗ[K] sha ⊗[K] (sha ⊗[K] sha))
   ∘ₗ (sha_comul : sha →ₗ[K] sha ⊗[K] sha)
   :=
@@ -348,13 +348,13 @@ noncomputable def sha_anti : (@sha K) →ₗ[K] (@sha K) :=
 noncomputable def sha_g_conj : (@sha K) →ₗ[K] (@sha K) :=
   (sha_mul : sha ⊗[K] sha →ₗ[K] sha)
   ∘ₗ
-  (LinearMap.rTensorHom sha sha_mul : (sha ⊗[K] sha) ⊗[K] sha →ₗ[K] sha ⊗[K] sha)
+  (LinearMap.rTensor sha sha_mul : (sha ⊗[K] sha) ⊗[K] sha →ₗ[K] sha ⊗[K] sha)
   ∘ₗ
-  (LinearMap.rTensorHom sha (LinearMap.rTensorHom sha sha_g) : (K ⊗[K] sha) ⊗[K] sha →ₗ[K] (sha ⊗[K] sha) ⊗[K] sha)
+  (LinearMap.rTensor sha (LinearMap.rTensor sha sha_g) : (K ⊗[K] sha) ⊗[K] sha →ₗ[K] (sha ⊗[K] sha) ⊗[K] sha)
   ∘ₗ
-  (LinearMap.rTensorHom sha (unitor_left_inv sha) : sha ⊗[K] sha →ₗ[K] (K ⊗[K] sha) ⊗[K] sha)
+  (LinearMap.rTensor sha (unitor_left_inv sha) : sha ⊗[K] sha →ₗ[K] (K ⊗[K] sha) ⊗[K] sha)
   ∘ₗ
-  (LinearMap.lTensorHom sha sha_g : sha ⊗[K] K →ₗ[K] sha ⊗[K] sha)
+  (LinearMap.lTensor sha sha_g : sha ⊗[K] K →ₗ[K] sha ⊗[K] sha)
   ∘ₗ
   (unitor_right_inv sha : sha →ₗ[K] sha ⊗[K] K)
 
@@ -372,7 +372,7 @@ example : ( sha_anti ∘ₗ sha_anti : (@sha K) →ₗ[K] (@sha K))
 theorem sha_comul_mul :
   ( mulAA : (sha ⊗[K] sha) ⊗[K] (sha ⊗[K] sha) →ₗ[K] sha ⊗[K] sha )
   ∘ₗ
-  ( tensor_hom sha_comul sha_comul : sha ⊗[K] sha →ₗ[K] (sha ⊗[K] sha) ⊗[K] (sha ⊗[K] sha) )
+  ( TensorProduct.map sha_comul sha_comul : sha ⊗[K] sha →ₗ[K] (sha ⊗[K] sha) ⊗[K] (sha ⊗[K] sha) )
   =
   ( sha_comul : sha →ₗ[K] sha ⊗[K] sha )
   ∘ₗ
@@ -380,7 +380,7 @@ theorem sha_comul_mul :
   := by
     apply Basis.ext ββ
     intro (a,b)
-    simp [tensor_hom,ββ,sha_mul_ββ_lemma]
+    simp [ββ,sha_mul_ββ_lemma]
     cases a <;> cases b <;>
       repeat simp [sha_mul_on_basis,sha_comul,
           sha_comul_on_basis,
@@ -397,14 +397,14 @@ theorem sha_comul_unit :
   ∘ₗ
   ( sha_unit : K →ₗ[K] sha )
   =
-  ( (tensor_hom sha_unit sha_unit) : K ⊗[K] K →ₗ[K] sha ⊗[K] sha )
+  ( (TensorProduct.map sha_unit sha_unit) : K ⊗[K] K →ₗ[K] sha ⊗[K] sha )
   ∘ₗ
   ( unitor_left_inv K : K →ₗ[K] K⊗[K] K )
   := by
     apply Basis.ext βK
     intro i
     rw [βK,Basis.singleton_apply]
-    simp [unitor_left_inv,tensor_hom,sha_unit,sha_comul,sha_comul_on_basis]
+    simp [unitor_left_inv,sha_unit,sha_comul,sha_comul_on_basis]
 
 theorem sha_counit_mul :
   ( sha_counit : sha →ₗ[K] K )
@@ -413,11 +413,11 @@ theorem sha_counit_mul :
   =
   ( unitor_left K : K ⊗[K] K →ₗ[K] K )
   ∘ₗ
-  ( (tensor_hom sha_counit sha_counit) : sha ⊗[K] sha →ₗ[K] K ⊗[K] K )
+  ( (TensorProduct.map sha_counit sha_counit) : sha ⊗[K] sha →ₗ[K] K ⊗[K] K )
   := by
     apply Basis.ext ββ
     intro (a,b)
-    simp [unitor_left,tensor_hom,ββ,sha_mul_ββ_lemma]
+    simp [unitor_left,ββ,sha_mul_ββ_lemma]
     cases a <;> cases b <;>
       simp [sha_counit,sha_counit_on_basis,sha_mul_on_basis]
 
@@ -436,7 +436,7 @@ theorem sha_counit_unit :
 theorem sha_anti_left :
   ( sha_mul : sha ⊗[K] sha →ₗ[K] sha )
   ∘ₗ
-  ( LinearMap.lTensorHom sha sha_anti : sha ⊗[K] sha →ₗ[K] sha ⊗[K] sha )
+  ( LinearMap.lTensor sha sha_anti : sha ⊗[K] sha →ₗ[K] sha ⊗[K] sha )
   ∘ₗ
   ( sha_comul : sha →ₗ[K] sha ⊗[K] sha )
   =
@@ -455,7 +455,7 @@ theorem sha_anti_left :
 theorem sha_anti_right :
   ( sha_mul : sha ⊗[K] sha →ₗ[K] sha )
   ∘ₗ
-  ( LinearMap.rTensorHom sha sha_anti : sha ⊗[K] sha →ₗ[K] sha ⊗[K] sha )
+  ( LinearMap.rTensor sha sha_anti : sha ⊗[K] sha →ₗ[K] sha ⊗[K] sha )
   ∘ₗ
   ( sha_comul : sha →ₗ[K] sha ⊗[K] sha )
   =
@@ -471,13 +471,22 @@ theorem sha_anti_right :
       tensor_sub_left,
       sha_mul_ββ_lemma,sha_mul_on_basis]
 
-noncomputable instance : HopfAlgebraTens K (@sha K) where
-  anti := sha_anti
+noncomputable instance : BialgebraTens K (@sha K) where
   comul_mul := sha_comul_mul
   comul_unit := sha_comul_unit
   counit_mul := sha_counit_mul
   counit_unit := sha_counit_unit
-  anti_left := sha_anti_left
-  anti_right := sha_anti_right
+
+open AlgebraTens CoalgebraTens
+
+noncomputable instance : HopfAlgebraTens K (@sha K) where
+  anti := sha_anti
+  hasAntipodeProp :=
+  {
+    left := by
+      simp [mul,comul,unit,counit]; rw[sha_anti_left]
+    right := by
+      simp [mul,comul,unit,counit]; rw[sha_anti_right]
+  }
 
 end SweedlerHopfAlgebra
