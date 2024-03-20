@@ -68,3 +68,12 @@ example (v:Vd) : (0:ℚ) • v = zero_Vd  := by
    AddCommMonoid by hand, when trying to prove the properties
    of nsmul.)
 -/
+
+/-
+def C4 := Multiplicative (Fin 4)
+
+instance : DecidableEq C4 := inferInstanceAs (DecidableEq (Multiplicative (Fin 4)))
+instance : Group C4 := inferInstanceAs (Group (Multiplicative (Fin 4)))
+instance : Finite C4 := inferInstanceAs (Finite (Fin 4))
+abbrev FunC4 := @Fun C4 ℚ
+-/

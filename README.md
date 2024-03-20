@@ -4,25 +4,26 @@ An attempt to implement some aspects of Hopf algebras in Lean4, including exampl
 ## Basic.lean
 
 Implements the definition of a Hopf algebra. It starts with some linear algebra helper functions (which are probably superfluous), and provides the classes:
-- <code>AlgebraTens R A</code>: Associative unital algebra on A over a commutative (semi-)ring R.
+- <code>AlgebraTens R A</code>: Associative unital algebra on `A` over a commutative (semi-)ring `R`.
 - <code>CoalgebraTens R A</code>: Dito for coalgebras.
 - <code>HopfAlgebraTens R A</code>: Combines the previous two and adds the antipode.
 
 ## ExampleSweedler.lean
 
-<code>sha {K}</code>: Sweedler's four-dimensional Hopf algebra over a commutative ring <code>K</code>. So far contains the proof that it indeed defines a Hopf algebra, i.e. it provides <code>noncomputable instance : HopfAlgebraTens K (@sha K)</code>.
+`sha {K}`: Sweedler's four-dimensional Hopf algebra over a commutative ring `K`. So far contains the proof that it indeed defines a Hopf algebra, i.e. it provides <code>noncomputable instance : HopfAlgebraTens K (@sha K)</code>.
 
 TODOs: implement examples alongside general theory: (co)integrals, R-matrices,... Distant future: Show that representations of Sweedler's Hopf algebra in Vect are the same as those of the symmetric algebra of a two-dimensional purely odd super-vector space in SVect.
 
-## ExampleHopfFromGroup.lean
+## ExampleFunctionAlgebra.lean
 
-For a finite group <code>G</code>, the function algebra and the group algebra are Hopf algebras. WORK IN PROGRESS.
+`Fun {G} {K}`: The Hopf algebra of functions `G → K`. 
+Here `G` is a finite group, `K` is a commutative Ring, and the group structure enters the definition of the coproduct, but not that of the product. The file provides <code>noncomputable instance : HopfAlgebraTens K (@Fun G K)</code>.
 
-<code>Fun {G} {K}</code>: The Hopf algebra of functions G → K. The group structure enters the definition of the coproduct, but not that of the product.
+There is also an explict example for the group `C2` of two elements, written multiplicatively. (I tried to make this work via `Multiplicative (Fin 2)`, but failed, so now there is a multiplicative `C2` defines from scratch.)
 
-<code>Alg {K} {G}</code>: The group algebra for G over K. The group structure enters the definition of the product but not that of the coproduct.
+## ExampleGroupAlgebra.lean
 
-TODOs: show that these two are Hopf algebras, hopefully will be able to show that these are dual to each other.
+`Alg {K} {G}`: The group algebra for a finite group `G` over a commutative ring `K` is a Hopf algebra. The group structure enters the definition of the product but not that of the coproduct. Provides <code>noncomputable instance : HopfAlgebraTens K (@Alg K G)</code>.
 
-### TODOs
-Many...
+TODOs: try to show that `Fun {G} {K}` and `Alg {K} {G}` are dual to each other, ...
+

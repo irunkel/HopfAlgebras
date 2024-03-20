@@ -3,6 +3,7 @@ import Mathlib.LinearAlgebra.StdBasis
 import Mathlib.LinearAlgebra.TensorProduct.Basic
 import Mathlib.LinearAlgebra.TensorProduct.Basis
 import HopfAlgebra.Basic
+import Mathlib.Algebra.Group.Basic
 
 open BigOperators
 open Finset
@@ -17,8 +18,11 @@ variable {K : Type} [CommRing K]
 -- Fintype is needed for the Bigoperators to work, Σ etc.
 noncomputable instance : Fintype G := Fintype.ofFinite G
 
-abbrev Fun
-  := G → K
+/- TODO: tried to make this a "def" but the all basis accesses
+   below fail as it seems to forget that Fun is an arrow type
+   and I did not manage to show that β g g = 1, should make
+   this a question. -/
+abbrev Fun := G → K
 
 noncomputable def βK : Basis (Fin 1) K K
   := Basis.singleton (Fin 1) K
@@ -85,16 +89,13 @@ open BigOperators
 noncomputable def Fun_unit_el_bas : (@Fun G K)
   := ∑ x : G, β x
 
-#check Finset.sum univ (fun x ↦ β x)
-
 theorem Fun_units_agree :
   (Fun_unit_el : @Fun G K) = (Fun_unit_el_bas : @Fun G K)
   := by
     apply funext
     intro g
-    rw [Fun_unit_el,Fun_unit_el_bas,β]
-    simp -- I do not understand how simp closes the goal here,
-         -- Tried to reproduce with rewrites, did not manage.
+    rw [Fun_unit_el,Fun_unit_el_bas]
+    simp [β]
 
 noncomputable def Fun_unit : K →ₗ[K] (@Fun G K) :=
   Basis.constr βK K (fun (_: Fin 1) ↦ Fun_unit_el_bas)
@@ -146,6 +147,21 @@ noncomputable def Fun_counit_on_basis : G → K := fun g ↦
 noncomputable def Fun_counit : (@Fun G K) →ₗ[K] K :=
   Basis.constr β K Fun_counit_on_basis
 
+-- TODO: should the next two helper theorems not be in the library?
+theorem mul_inv_one_iff_eq_inv (g h : G) :
+  g * h = 1 ↔ g = h⁻¹
+  := by
+    apply Iff.intro
+    case mp => exact eq_inv_of_mul_eq_one_left
+    case mpr => intro a2; rw [a2,mul_left_inv]
+
+theorem mul_inv_one_iff_eq_inv' (g h : G) :
+  g * h = 1 ↔ h = g⁻¹
+  := by
+    apply Iff.intro
+    case mp => exact eq_inv_of_mul_eq_one_right
+    case mpr => intro a2; rw [a2,mul_right_inv]
+
 theorem Fun_coone_comul :
   (unitor_left Fun : K ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K))
   ∘ₗ (LinearMap.rTensorHom Fun Fun_counit : (@Fun G K) ⊗[K] (@Fun G K)  →ₗ[K]  K ⊗[K] (@Fun G K))
@@ -158,7 +174,19 @@ theorem Fun_coone_comul :
     simp [Fun_comul,Fun_comul_on_basis,
       Fun_counit,Fun_counit_on_basis,
       unitor_left]
-    sorry
+    have : ∀ x:G, (if g*x = 1 then β x⁻¹ else (0:@Fun G K))
+      = (if x = g⁻¹ then β g else (0:@Fun G K) )
+      := by
+        intro x
+        cases (eq_or_ne x g⁻¹) with
+        | inl a1 => simp [a1]
+        | inr a1 =>
+            have : g * x ≠ 1 := by
+              have a2 : g * x = 1 ↔ x = g⁻¹ := mul_inv_one_iff_eq_inv' g x
+              rw [← not_iff_not] at a2
+              simp [a2,a1]
+            simp [this,a1]
+    simp [this]
 
 theorem Fun_comul_coone :
   (unitor_right Fun :  (@Fun G K) ⊗[K] K →ₗ[K] (@Fun G K))
@@ -167,7 +195,39 @@ theorem Fun_comul_coone :
   =
   (LinearMap.id : (@Fun G K) →ₗ[K] (@Fun G K))
   := by
-    sorry
+    apply Basis.ext β
+    intro g
+    simp [unitor_right]
+    simp [Fun_comul,Fun_comul_on_basis]
+    simp [Fun_counit,Fun_counit_on_basis]
+
+-- TODO: Is that already in the library?
+theorem group_sum_shift_left {α : Type} [AddCommMonoid α] (s : G) (f:G → α) :
+  ∑ g:G, f g = ∑ g:G, f (s*g)
+  := by
+    let e := Equiv.mulLeft s
+    have a1 (x:G) : e x = s*x := rfl
+    apply Eq.symm
+    rw [Fintype.sum_equiv e]
+    simp [a1]
+
+theorem group_sum_shift_right {α : Type} [AddCommMonoid α] (s : G) (f:G → α) :
+  ∑ g:G, f g = ∑ g:G, f (g*s)
+  := by
+    let e := Equiv.mulRight s
+    have a1 (x:G) : e x = x*s := rfl
+    apply Eq.symm
+    rw [Fintype.sum_equiv e]
+    simp [a1]
+
+theorem group_sum_inv {α : Type} [AddCommMonoid α] (f:G → α) :
+  ∑ g:G, f g = ∑ g:G, f g⁻¹
+  := by
+    let e := Equiv.inv G
+    have a1 (x:G) : e x = x⁻¹ := rfl
+    apply Eq.symm
+    rw [Fintype.sum_equiv e]
+    simp [a1]
 
 theorem Fun_comul_coassoc :
   (TensorProduct.assoc K (@Fun G K) (@Fun G K) (@Fun G K)
@@ -184,7 +244,27 @@ theorem Fun_comul_coassoc :
     intro g
     simp [Fun_comul,Fun_comul_on_basis,
       TensorProduct.tmul_sum,TensorProduct.sum_tmul]
-    sorry
+    nth_rw 2 [Finset.sum_comm]
+    have a1 : ∀ x:G, ∑ y:G, β (g * x * y) ⊗ₜ[K] β y⁻¹
+      = (∑ z:G, β (g * z) ⊗ₜ[K] β (z⁻¹ * x)
+      : (@Fun G K) ⊗[K] (@Fun G K))
+      := by
+        intro x
+        rw [group_sum_shift_left x⁻¹]
+        simp [mul_assoc]
+    have a2 : ∀ x:G, ∑ y:G, β (g * x * y) ⊗ₜ[K] β y⁻¹ ⊗ₜ[K] β x⁻¹
+      = (∑ z:G, β (g * z) ⊗ₜ[K] β (z⁻¹ * x) ⊗ₜ[K] β x⁻¹
+      : (@Fun G K) ⊗[K] (@Fun G K) ⊗[K] (@Fun G K))
+      := by
+        intro x
+        have : (TensorProduct.assoc K (@Fun G K) (@Fun G K) (@Fun G K))
+                  ( (∑ y:G, β (g * x * y) ⊗ₜ[K] β y⁻¹) ⊗ₜ[K] β x⁻¹ )
+                = (TensorProduct.assoc K (@Fun G K) (@Fun G K) (@Fun G K))
+                  ( (∑ z:G, β (g * z) ⊗ₜ[K] β (z⁻¹ * x)) ⊗ₜ[K] β x⁻¹ )
+          := by simp [a1]
+        simp [TensorProduct.sum_tmul] at this
+        simp [this]
+    simp [a2]
 
 noncomputable instance : CoalgebraTens K (@Fun G K) where
   comul := Fun_comul
@@ -196,8 +276,22 @@ noncomputable instance : CoalgebraTens K (@Fun G K) where
 
 /- --- Hopf algebra structure on function algebra --- -/
 
-def Fun_anti : (@Fun G K) →ₗ[K] (@Fun G K) := sorry
+noncomputable def Fun_anti_on_basis : G → (@Fun G K) := fun g ↦
+  β g⁻¹
 
+noncomputable def Fun_anti : (@Fun G K) →ₗ[K] (@Fun G K) :=
+  Basis.constr β K Fun_anti_on_basis
+
+theorem tensor_right_if (g:G) (a b : G → (@Fun G K)) :
+  ∀ h:G , (a h) ⊗ₜ[K] (if g=h then (b h) else 0)
+            = if g=h then (a g) ⊗ₜ[K] (b g) else 0
+  := by
+    intro h
+    cases (eq_or_ne g h) with
+    | inl a2 => simp [a2]
+    | inr a2 => simp [a2]
+
+-- TODO: This is way too complicated, try to split into easier statements
 theorem Fun_comul_mul :
   ( mulAA : ((@Fun G K) ⊗[K] (@Fun G K)) ⊗[K] ((@Fun G K) ⊗[K] (@Fun G K)) →ₗ[K] (@Fun G K) ⊗[K] (@Fun G K) )
   ∘ₗ
@@ -207,7 +301,41 @@ theorem Fun_comul_mul :
   ∘ₗ
   ( Fun_mul : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K))
   := by
-    sorry
+    apply Basis.ext ββ
+    intro (g,h)
+    simp [Fun_mul]
+    simp [Fun_mul_on_basis]
+    simp [Fun_comul,ββ,tensor_hom,Fun_comul_on_basis]
+    simp [TensorProduct.sum_tmul]
+    simp [TensorProduct.tmul_sum]
+    simp [mulAA_tmul]
+    simp [AlgebraTens.mul,Fun_mul_ββ_lemma,Fun_mul_on_basis]
+    nth_rw 3 [β]
+    nth_rw 3 [β]
+    have a1 : ∀ x:G , ∑ z:G, (if g * x = h * z then β (g * x) else 0)
+        ⊗ₜ[K] (if x = z then β x⁻¹ else 0)
+        = (if g=h then β (g * x) ⊗ₜ[K] β x⁻¹ else 0 : (@Fun G K) ⊗[K] (@Fun G K))
+      := by
+        intro x
+        have : ∀ z:G, (if g * x = h * z then β (g * x) else 0) ⊗ₜ[K] (if x = z then β x⁻¹ else 0)
+          = (if z=x then (if g * x = h * z then β (g * x) else 0) ⊗ₜ[K] β x⁻¹ else (0 : (@Fun G K) ⊗[K] (@Fun G K)) )
+          := by
+            intro z
+            rw [tensor_right_if x (fun z ↦ (if g * x = h * z then β (g * x) else 0)) (fun _ ↦ β x⁻¹ : G → @Fun G K)]
+            cases (eq_or_ne z x) with
+            | inl a2 => simp [a2]
+            | inr a2 =>
+                simp [a2]
+                have : x ≠ z := Ne.symm a2
+                simp [this]
+        simp [this]
+        cases (eq_or_ne g h) with
+        | inl a2 => simp [a2]
+        | inr a2 => simp [a2]
+    simp [a1]
+    cases (eq_or_ne g h) with
+    | inl a2 => simp [a2]
+    | inr a2 => simp [a2]
 
 theorem Fun_comul_unit :
   ( Fun_comul : (@Fun G K) →ₗ[K] (@Fun G K) ⊗[K] (@Fun G K) )
@@ -224,8 +352,17 @@ theorem Fun_comul_unit :
     simp [unitor_left_inv,tensor_hom]
     simp [Fun_unit,Fun_unit_el_bas,βK]
     simp [Fun_comul,Fun_comul_on_basis]
-    --  Fun_unit,Fun_unit_el_bas,Fun_comul,Fun_comul_on_basis]
-    sorry
+    simp [TensorProduct.sum_tmul,TensorProduct.tmul_sum]
+    nth_rw 1 [Finset.sum_comm]
+    nth_rw 1 [group_sum_inv]
+    simp
+    have : ∀ x:G, ∑ z : G, β (z * x⁻¹) ⊗ₜ[K] β x
+      = ∑ w : G, (β w ⊗ₜ[K] β x : (@Fun G K) ⊗[K] (@Fun G K))
+      := by
+        intro x
+        rw [group_sum_shift_right x]
+        simp
+    simp [this]
 
 theorem Fun_counit_mul :
   ( Fun_counit : (@Fun G K) →ₗ[K] K )
@@ -282,7 +419,16 @@ theorem Fun_anti_left :
   ∘ₗ
   ( Fun_counit : (@Fun G K) →ₗ[K] K )
   := by
-    sorry
+    apply Basis.ext β
+    intro g
+    simp [Fun_comul,Fun_comul_on_basis,
+      Fun_anti,Fun_anti_on_basis,
+      Fun_mul_ββ_lemma,Fun_mul_on_basis]
+    simp [Fun_counit,Fun_counit_on_basis,
+      Fun_unit,Fun_unit_el_bas,βK]
+    cases (eq_or_ne g 1) with
+    | inl a1 => simp [a1]
+    | inr a1 => simp [a1]
 
 theorem Fun_anti_right :
   ( Fun_mul : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K) )
@@ -295,9 +441,18 @@ theorem Fun_anti_right :
   ∘ₗ
   ( Fun_counit : (@Fun G K) →ₗ[K] K )
   := by
-    sorry
+    apply Basis.ext β
+    intro g
+    simp [Fun_comul,Fun_comul_on_basis,
+      Fun_anti,Fun_anti_on_basis,
+      Fun_mul_ββ_lemma,Fun_mul_on_basis]
+    simp [Fun_counit,Fun_counit_on_basis,
+      Fun_unit,Fun_unit_el_bas,βK]
+    cases (eq_or_ne g 1) with
+    | inl a1 => simp [a1]; rw [group_sum_inv]; simp
+    | inr a1 => simp [a1]
 
-noncomputable instance : HopfAlgebraTens K (@Fun G K) where
+noncomputable instance instHopfAlgebraTens : HopfAlgebraTens K (@Fun G K) where
   anti := Fun_anti
   comul_mul := Fun_comul_mul
   comul_unit := Fun_comul_unit
@@ -307,57 +462,99 @@ noncomputable instance : HopfAlgebraTens K (@Fun G K) where
   anti_right := Fun_anti_right
 
 
-/- --- Function algebra for Z/4Z as an example --- -/
+/- --- Function algebra for C2 as an example --- -/
 
-def C4 := Multiplicative (Fin 4)
-instance : Group C4 := inferInstanceAs (Group (Multiplicative (Fin 4)))
-instance : Finite C4 := inferInstanceAs (Finite (Fin 4))
-abbrev FunC4 := @Fun C4 ℚ
+--def C2 := Multiplicative (Fin 2) -- tried this but could not get it to work
 
-example : Fun_mul_on_basis ( (3:Fin 4) , (3:Fin 4) ) = (β (3:Fin 4):FunC4) :=
-  by
-    simp [Fun_mul_on_basis]
-    rfl
+inductive C2 where
+| e : C2
+| m : C2
+deriving DecidableEq, Repr
 
-example : Fun_mul ( (β (3:Fin 4)) ⊗ₜ[K] (β (3:Fin 4)) ) = β (3:Fin 4) :=
-  by simp [Fun_mul_ββ_lemma,Fun_mul_on_basis]
+def isEquivFin2 : Equiv C2 (Fin 2) :=
+  {
+    toFun := fun x ↦ match x with
+      | C2.e => 0
+      | C2.m => 1
+    invFun := fun x ↦ match x with
+      | 0 => C2.e
+      | 1 => C2.m
+    left_inv := by intro x; cases x <;> rfl
+    right_inv := by
+      intro x
+      match x with
+      | 0 => rfl
+      | 1 => rfl
+  }
 
-example : Fun_mul ( (β (2:Fin 4)) ⊗ₜ[K] (β (3:Fin 4)) ) = 0 :=
-  by simp [Fun_mul_ββ_lemma,Fun_mul_on_basis]
+instance : Finite C2 := Finite.intro isEquivFin2
+
+instance : Group C2 where
+  mul := fun a b ↦
+    match a,b with
+    | C2.e,x => x
+    | x,C2.e => x
+    | C2.m,C2.m => C2.e
+
+  mul_assoc := by
+    intro a b c
+    cases a <;> cases b <;> cases c <;> rfl
+
+  one := C2.e
+
+  one_mul := by
+    intro a
+    cases a <;> rfl
+
+  mul_one := by
+    intro a
+    cases a <;> rfl
+
+  inv := id
+
+  mul_left_inv := by
+    intro a
+    cases a <;> rfl
+
+example : C2.m * C2.m = C2.e := rfl
+
+abbrev FunC2 := @Fun C2 ℚ
+
+open HopfAlgebraTens AlgebraTens CoalgebraTens
+
+#check ( (β C2.m) : FunC2 )
+
+example : mul ( (β C2.m) ⊗ₜ[ℚ] (β C2.m) ) = ( (β C2.m) : FunC2 ) :=
+  by simp [mul,Fun_mul_ββ_lemma,Fun_mul_on_basis]
+
+example : mul ( (β C2.e) ⊗ₜ[ℚ] (β C2.m) ) = ( 0 : FunC2 ) :=
+  by simp [mul,Fun_mul_ββ_lemma,Fun_mul_on_basis]
+
+-- TODO: this cannot be the easiest way to do this
+theorem sumC2 {α:Type} [AddCommMonoid α] (f : C2 → α):
+  ∑ h : C2 , f h = f C2.e + f C2.m
+  := by
+    have a1 : ({C2.e,C2.m} : Finset C2) = Finset.univ := by
+      ext x
+      simp
+      match x with
+      | C2.e => left; rfl
+      | C2.m => right; rfl
+    rw [← a1,Finset.sum_pair ((by simp) : C2.e ≠ C2.m)]
+
+example : comul ( (β C2.m : FunC2) )
+  = (
+      (β C2.e) ⊗ₜ[ℚ] (β C2.m)
+      +
+      (β C2.m) ⊗ₜ[ℚ] (β C2.e)
+      : FunC2 ⊗[ℚ] FunC2 )
+  := by
+    simp [comul,Fun_comul,Fun_comul_on_basis]
+    rw [sumC2]
+    -- simp -- fails: TODO: why does simp not find the computation below?
+    calc
+    β (C2.m * C2.e) ⊗ₜ[ℚ] β C2.e⁻¹ + β (C2.m * C2.m) ⊗ₜ[ℚ] β C2.m⁻¹
+      = β C2.m ⊗ₜ[ℚ] β C2.e + β C2.e ⊗ₜ[ℚ] β C2.m := by rfl
+    _ = β C2.e ⊗ₜ[ℚ] β C2.m + β C2.m ⊗ₜ[ℚ] β C2.e := by rw [add_comm]
 
 end FunctionsOnGroup
-
--- This is in Mathlib as "MonoidAlgebra"
-namespace GroupAlgebra
-
-variable {K : Type} [CommRing K]
-variable {G : Type} [Group G] [Finite G] [DecidableEq G]
-
-abbrev Alg := G → K
-
-noncomputable def β : Basis G K (@Alg K G)
-  := Pi.basisFun K G
-
-noncomputable def ββ : Basis (Prod G G) K ((@Alg K G) ⊗[K] (@Alg K G))
-  := Basis.tensorProduct β β
-
-noncomputable def AlgG_mul_on_basis : G × G → (@Alg K G) :=
-  fun (a,b) ↦ β (a*b)
-
-noncomputable def AlgG_mul : (@Alg K G) ⊗[K] (@Alg K G) →ₗ[K] (@Alg K G) :=
-  Basis.constr ββ K AlgG_mul_on_basis
-
-noncomputable def Alg_unit : K →ₗ[K] (@Alg K G) :=
-{
-  toFun := fun (a:K) ↦ a • (β (1:G))
-  map_add' := by
-    intro a b
-    simp [add_smul]
-  map_smul' := by
-    intro a b
-    dsimp
-    rw [mul_smul (a:K) (b:K) (β 1)]
-}
-
-
-end GroupAlgebra
