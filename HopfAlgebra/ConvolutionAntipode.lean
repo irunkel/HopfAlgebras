@@ -3,15 +3,15 @@ import Mathlib.LinearAlgebra.TensorProduct.Basic
 import Mathlib.LinearAlgebra.TensorProduct.Basis
 import HopfAlgebra.Basic
 
-namespace Convolution
-
 open scoped TensorProduct
 open LinearMap
 open Hopf
-open AlgebraTens CoalgebraTens HopfAlgebraTens
+open AlgebraTens CoalgebraTens BialgebraTens HopfAlgebraTens
 
 variable {R:Type} [CommSemiring R]
 variable {H:Type} [AddCommMonoid H] [Module R H] [HopfAlgebraTens R H]
+
+namespace Convolution
 
 /- convAlg: the convolution algebra as an R-module -/
 def convAlg := H →ₗ[R] H
@@ -323,7 +323,16 @@ theorem conv_S_id : convAlg_mul (anti ⊗ₜ[R] (id : H →ₗ[R] H)) = convAlg_
     rw [hasAntipodeProp.right]
     rw [convAlg_unit_el]
 
-theorem HopfAntipodeUnique (f : H →ₗ[R] H) (h: AntipodeProp f) :
+end Convolution
+
+namespace AntipodeProperties
+
+open Convolution
+
+/- See Klimyk, Schmudgen, Quantum groups and their representations (Springer 1997),
+   Sec 1.2.4 Prop. 5 -/
+
+theorem AntipodeUnique (f : H →ₗ[R] H) (h: AntipodeProp f) :
   f = anti
   := by
     let u : @convAlg R _ H _ _ := convAlg_unit_el
@@ -341,4 +350,180 @@ theorem HopfAntipodeUnique (f : H →ₗ[R] H) (h: AntipodeProp f) :
       _ = convAlg_mul ( u ⊗ₜ[R] anti ) := by rw [this]
       _ = anti := by rw [convAlg_one_mul_el]
 
-end Convolution
+theorem Antipode_mul :
+  (anti : H →ₗ[R] H)
+  ∘ₗ
+  (mul : H ⊗[R] H →ₗ[R] H)
+  =
+  (mul : H ⊗[R] H →ₗ[R] H)
+  ∘ₗ
+  (TensorProduct.comm R H H : H ⊗[R] H →ₗ[R] H ⊗[R] H)
+  ∘ₗ
+  (TensorProduct.map anti anti : H ⊗[R] H →ₗ[R] H ⊗[R] H)
+  := by
+    sorry
+
+theorem Antipode_unit :
+  (anti : H →ₗ[R] H)
+  ∘ₗ
+  (unit : R →ₗ[R] H)
+  =
+  (unit : R →ₗ[R] H)
+
+  := by
+  apply Eq.symm
+  calc
+  ( unit : R →ₗ[R] H )
+  =
+  (( unit : R →ₗ[R] H )
+  ∘ₗ ( counit : H →ₗ[R] R ))
+  ∘ₗ ( unit : R →ₗ[R] H )
+      := by simp [comp_assoc]; rw [counit_unit]; simp
+  _ =
+  ( mul : H ⊗[R] H →ₗ[R] H )
+  ∘ₗ ( LinearMap.lTensor H anti : H ⊗[R] H →ₗ[R] H ⊗[R] H )
+  ∘ₗ ( comul : H →ₗ[R] H ⊗[R] H )
+  ∘ₗ ( unit : R →ₗ[R] H )
+      := by rw [← hasAntipodeProp.left]; simp [comp_assoc]
+  _ =
+  ( mul : H ⊗[R] H →ₗ[R] H )
+  ∘ₗ ( TensorProduct.map id anti : H ⊗[R] H →ₗ[R] H ⊗[R] H )
+  ∘ₗ ( TensorProduct.map unit unit : R ⊗[R] R →ₗ[R] H ⊗[R] H )
+  ∘ₗ ( unitor_left_inv R : R →ₗ[R] R ⊗[R] R )
+      := by rw [← comul_unit]; simp [lTensor]
+  _ =
+  ( mul : H ⊗[R] H →ₗ[R] H )
+  ∘ₗ ( TensorProduct.map (id ∘ₗ unit) (anti ∘ₗ unit) : R ⊗[R] R →ₗ[R] H ⊗[R] H )
+  ∘ₗ ( unitor_left_inv R : R →ₗ[R] R ⊗[R] R )
+      := by rw [TensorProduct.map_comp]; simp [comp_assoc]
+  _ =
+  ( mul : H ⊗[R] H →ₗ[R] H )
+  ∘ₗ (( TensorProduct.map unit id : R ⊗[R] H →ₗ[R] H ⊗[R] H )
+  ∘ₗ ( TensorProduct.map id (anti ∘ₗ unit) : R ⊗[R] R →ₗ[R] R ⊗[R] H ))
+  ∘ₗ ( unitor_left_inv R : R →ₗ[R] R ⊗[R] R )
+      := by rw [← TensorProduct.map_comp]; simp [comp_assoc]
+  _ =
+  ( mul : H ⊗[R] H →ₗ[R] H )
+  ∘ₗ ( rTensor H unit : R ⊗[R] H →ₗ[R] H ⊗[R] H )
+  ∘ₗ (( unitor_left_inv H : H →ₗ[R] R ⊗[R] H )
+  ∘ₗ ( unitor_left H : R ⊗[R] H →ₗ[R] H ))
+  ∘ₗ ( TensorProduct.map id (anti ∘ₗ unit) : R ⊗[R] R →ₗ[R] R ⊗[R] H )
+  ∘ₗ ( unitor_left_inv R : R →ₗ[R] R ⊗[R] R )
+      := by rw [unitor_left_inv_is_inv H]; simp [rTensor,comp_assoc]
+  _ =
+  (( mul : H ⊗[R] H →ₗ[R] H )
+  ∘ₗ ( rTensor H unit : R ⊗[R] H →ₗ[R] H ⊗[R] H )
+  ∘ₗ ( unitor_left_inv H : H →ₗ[R] R ⊗[R] H ))
+  ∘ₗ ( unitor_left H : R ⊗[R] H →ₗ[R] H )
+  ∘ₗ ( TensorProduct.map id (anti ∘ₗ unit) : R ⊗[R] R →ₗ[R] R ⊗[R] H )
+  ∘ₗ ( unitor_left_inv R : R →ₗ[R] R ⊗[R] R )
+      := by simp [comp_assoc]
+  _ =
+  (( unitor_left H : R ⊗[R] H →ₗ[R] H )
+  ∘ₗ ( TensorProduct.map id (anti ∘ₗ unit) : R ⊗[R] R →ₗ[R] R ⊗[R] H ))
+  ∘ₗ ( unitor_left_inv R : R →ₗ[R] R ⊗[R] R )
+      := by rw[AlgebraTens.one_mul]; simp [comp_assoc]
+  _ =
+  ( anti ∘ₗ unit : R →ₗ[R] H )
+  ∘ₗ ( unitor_left R : R ⊗[R] R →ₗ[R] R )
+  ∘ₗ ( unitor_left_inv R : R →ₗ[R] R ⊗[R] R )
+      := by rw[unitor_left_nat]; simp [comp_assoc]
+  _ =
+  ( anti ∘ₗ unit : R →ₗ[R] H )
+    := by simp [unitor_left_inv_is_inv']
+
+
+theorem Antipode_comul :
+  (comul : H →ₗ[R] H ⊗[R] H)
+  ∘ₗ
+  (anti : H →ₗ[R] H)
+  =
+  (TensorProduct.map anti anti : H ⊗[R] H →ₗ[R] H ⊗[R] H)
+  ∘ₗ
+  (TensorProduct.comm R H H : H ⊗[R] H →ₗ[R] H ⊗[R] H)
+  ∘ₗ
+  (comul : H →ₗ[R] H ⊗[R] H)
+  := by
+    sorry
+
+theorem Antipode_counit :
+  (counit : H →ₗ[R] R)
+  ∘ₗ
+  (anti : H →ₗ[R] H)
+  =
+  (counit : H →ₗ[R] R)
+
+  := by
+  apply Eq.symm
+  calc
+  ( counit : H →ₗ[R] R )
+  =
+  (( counit : H →ₗ[R] R )
+  ∘ₗ ( unit : R →ₗ[R] H ))
+  ∘ₗ ( counit : H →ₗ[R] R )
+      := by rw [counit_unit]; simp
+  _ =
+  ( counit : H →ₗ[R] R )
+  ∘ₗ (( mul : H ⊗[R] H →ₗ[R] H )
+  ∘ₗ ( LinearMap.lTensor H anti : H ⊗[R] H →ₗ[R] H ⊗[R] H )
+  ∘ₗ ( comul : H →ₗ[R] H ⊗[R] H ))
+      := by rw [hasAntipodeProp.left]; simp [comp_assoc]
+  _ =
+  (( counit : H →ₗ[R] R )
+  ∘ₗ ( mul : H ⊗[R] H →ₗ[R] H ))
+  ∘ₗ ( LinearMap.lTensor H anti : H ⊗[R] H →ₗ[R] H ⊗[R] H )
+  ∘ₗ ( comul : H →ₗ[R] H ⊗[R] H )
+      := by simp [comp_assoc]
+  _ =
+  ( unitor_left R : R ⊗[R] R →ₗ[R] R )
+  ∘ₗ ( TensorProduct.map counit counit : H ⊗[R] H →ₗ[R] R ⊗[R] R )
+  ∘ₗ ( TensorProduct.map id anti : H ⊗[R] H →ₗ[R] H ⊗[R] H )
+  ∘ₗ ( comul : H →ₗ[R] H ⊗[R] H )
+      := by rw [counit_mul]; simp [lTensor,comp_assoc]
+  _ =
+  ( unitor_left R : R ⊗[R] R →ₗ[R] R )
+  ∘ₗ ( TensorProduct.map (counit ∘ₗ id) (counit ∘ₗ anti) : H ⊗[R] H →ₗ[R] R ⊗[R] R )
+  ∘ₗ ( comul : H →ₗ[R] H ⊗[R] H )
+      := by rw [TensorProduct.map_comp]; simp [comp_assoc]
+  _ =
+  ( unitor_left R : R ⊗[R] R →ₗ[R] R )
+  ∘ₗ (( TensorProduct.map id (counit ∘ₗ anti) : R ⊗[R] H →ₗ[R] R ⊗[R] R )
+  ∘ₗ ( TensorProduct.map counit id : H ⊗[R] H →ₗ[R] R ⊗[R] H ))
+  ∘ₗ ( comul : H →ₗ[R] H ⊗[R] H )
+      := by rw [← TensorProduct.map_comp]; simp [comp_assoc]
+  _ =
+  ( unitor_left R : R ⊗[R] R →ₗ[R] R )
+  ∘ₗ ( TensorProduct.map id (counit ∘ₗ anti) : R ⊗[R] H →ₗ[R] R ⊗[R] R )
+  ∘ₗ (( unitor_left_inv H : H →ₗ[R] R ⊗[R] H )
+  ∘ₗ ( unitor_left H : R ⊗[R] H →ₗ[R] H ))
+  ∘ₗ ( rTensor H counit : H ⊗[R] H →ₗ[R] R ⊗[R] H )
+  ∘ₗ ( comul : H →ₗ[R] H ⊗[R] H )
+      := by rw [unitor_left_inv_is_inv H]; simp [rTensor,comp_assoc]
+  _ =
+  ( unitor_left R : R ⊗[R] R →ₗ[R] R )
+  ∘ₗ ( TensorProduct.map id (counit ∘ₗ anti) : R ⊗[R] H →ₗ[R] R ⊗[R] R )
+  ∘ₗ ( unitor_left_inv H : H →ₗ[R] R ⊗[R] H )
+  ∘ₗ (( unitor_left H : R ⊗[R] H →ₗ[R] H )
+  ∘ₗ ( rTensor H counit : H ⊗[R] H →ₗ[R] R ⊗[R] H )
+  ∘ₗ ( comul : H →ₗ[R] H ⊗[R] H ))
+      := by simp [comp_assoc]
+  _ =
+  ( unitor_left R : R ⊗[R] R →ₗ[R] R )
+  ∘ₗ ( TensorProduct.map id (counit ∘ₗ anti) : R ⊗[R] H →ₗ[R] R ⊗[R] R )
+  ∘ₗ ( unitor_left_inv H : H →ₗ[R] R ⊗[R] H )
+      := by rw[CoalgebraTens.coone_comul]; simp [comp_assoc]
+  _ =
+  (( counit ∘ₗ anti : H →ₗ[R] R )
+  ∘ₗ ( unitor_left H : R ⊗[R] H →ₗ[R] H ))
+  ∘ₗ ( unitor_left_inv H : H →ₗ[R] R ⊗[R] H )
+      := by rw[← unitor_left_nat]; simp [comp_assoc]
+  _ =
+  ( counit ∘ₗ anti : H →ₗ[R] R )
+  ∘ₗ ( unitor_left H : R ⊗[R] H →ₗ[R] H )
+  ∘ₗ ( unitor_left_inv H : H →ₗ[R] R ⊗[R] H )
+      := by simp [comp_assoc]
+  _ =
+  ( counit ∘ₗ anti : H →ₗ[R] R )
+    := by simp [unitor_left_inv_is_inv']
+
+end AntipodeProperties

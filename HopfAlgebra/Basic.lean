@@ -31,6 +31,28 @@ theorem unitor_left_inv_is_inv
   := by
     simp [unitor_left_inv,unitor_left]
 
+theorem unitor_left_inv_is_inv'
+  {R:Type} (M:Type)
+  [CommSemiring R] [AddCommMonoid M] [Module R M] :
+  unitor_left M ∘ₗ unitor_left_inv M = (LinearMap.id : M →ₗ[R] M)
+  := by
+    simp [unitor_left_inv,unitor_left]
+
+theorem unitor_left_nat
+  {R:Type} {M N:Type}
+  [CommSemiring R]
+  [AddCommMonoid M] [Module R M]
+  [AddCommMonoid N] [Module R N]
+  (f : M →ₗ[R] N) :
+  ( unitor_left N : R ⊗[R] N →ₗ[R] N )
+  ∘ₗ ( TensorProduct.map LinearMap.id f : R ⊗[R] M →ₗ[R] R ⊗[R] N )
+  =
+  ( f : M →ₗ[R] N )
+  ∘ₗ ( unitor_left M : R ⊗[R] M →ₗ[R] M )
+  := by
+    apply TensorProduct.ext'
+    simp [unitor_left]
+
 noncomputable def unitor_right
   {R:Type} (M:Type)
   [CommSemiring R] [AddCommMonoid M] [Module R M] :
@@ -47,6 +69,28 @@ theorem unitor_right_inv_is_inv
   unitor_right_inv M ∘ₗ unitor_right M = (LinearMap.id : M ⊗[R] R →ₗ[R] M ⊗[R] R)
   := by
     simp [unitor_right_inv,unitor_right]
+
+theorem unitor_right_inv_is_inv'
+  {R:Type} (M:Type)
+  [CommSemiring R] [AddCommMonoid M] [Module R M] :
+  unitor_right M ∘ₗ unitor_right_inv M = (LinearMap.id : M →ₗ[R] M)
+  := by
+    simp [unitor_right_inv,unitor_right]
+
+theorem unitor_right_nat
+  {R:Type} {M N:Type}
+  [CommSemiring R]
+  [AddCommMonoid M] [Module R M]
+  [AddCommMonoid N] [Module R N]
+  (f : M →ₗ[R] N) :
+  ( unitor_right N : N ⊗[R] R →ₗ[R] N )
+  ∘ₗ ( TensorProduct.map f LinearMap.id : M ⊗[R] R →ₗ[R] N ⊗[R] R )
+  =
+  ( f : M →ₗ[R] N )
+  ∘ₗ ( unitor_right M : M ⊗[R] R →ₗ[R] M )
+  := by
+    apply TensorProduct.ext'
+    simp [unitor_right]
 
 noncomputable def assoc {R : Type} (A B C:Type)
   [CommSemiring R]
@@ -293,7 +337,7 @@ structure AntipodeProp {R:Type} {A:Type}
   [BialgebraTens R A]
   (anti : A →ₗ[R] A) where
 
-  left :
+  left : -- Δ ∘ (id ⊗ S) ∘ μ
   ( mul : A ⊗[R] A →ₗ[R] A )
   ∘ₗ
   ( LinearMap.lTensor A anti : A ⊗[R] A →ₗ[R] A ⊗[R] A )
@@ -304,7 +348,7 @@ structure AntipodeProp {R:Type} {A:Type}
   ∘ₗ
   ( counit : A →ₗ[R] R )
 
-  right :
+  right : -- Δ ∘ (S ⊗ id) ∘ μ
   ( mul : A ⊗[R] A →ₗ[R] A )
   ∘ₗ
   ( LinearMap.rTensor A anti : A ⊗[R] A →ₗ[R] A ⊗[R] A )
