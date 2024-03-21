@@ -32,18 +32,17 @@ TODOs: try to show that `Fun {G} {K}` and `Alg {K} {G}` are dual to each other, 
 
 ## Convolution.lean
 
-**Work in progress.**
-
 Let `H` be a Hopf algebra over a commutative (semi)ring `R`.
 
 `convAlg`: The convolution algebra obtained form `H`. The file provides <code>noncomputable instance : AlgebraTens R (@convAlg R _ H _ _)</code>. (I would like to write `convAlg` instead of `(@convAlg R _ H _ _)` but I do not know how.)
 
 `HopfAntipodeUnique`: The theorem that the antipode of `H` is unique. The proof is that the antipode is the inverse to the identity in the convolution algebra, and hence unique.
 
+TODOs: Many proofs are by terribly long calc chains which just shuffle coherence isos around, maybe the `coherence` tactic in the category theory framework can be used on this in some way?
+
 ## Further things to try
 
 Try to implement more bits and pieces of Hopf algebras. E.g. the following would be nice: 
-- convolution and uniqueness of antipode
 - the dual is a Hopf algebra
 - Hopf modules and existence and uniqueness of (co)integrals
 - various versions of Uq(sl2)

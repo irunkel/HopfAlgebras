@@ -8,9 +8,11 @@ namespace Hopf
 open scoped TensorProduct
 
 /- --- Linear algebra helper definitions --- -/
+section LinAlg
 
-
-/- alternate names for unitors -/
+/- Alternate names for unitors and associators
+   This should probably be avoided in favour of the
+   library to a large extend  -/
 
 noncomputable def unitor_left
   {R:Type} (M:Type)
@@ -46,7 +48,53 @@ theorem unitor_right_inv_is_inv
   := by
     simp [unitor_right_inv,unitor_right]
 
+noncomputable def assoc {R : Type} (A B C:Type)
+  [CommSemiring R]
+  [AddCommMonoid A] [Module R A]
+  [AddCommMonoid B] [Module R B]
+  [AddCommMonoid C] [Module R C]
+  : (A ⊗[R] B) ⊗[R] C →ₗ[R] A ⊗[R] (B ⊗[R] C)
+  := TensorProduct.assoc R A B C
+
+noncomputable def assoc_inv {R : Type} (A B C:Type)
+  [CommSemiring R]
+  [AddCommMonoid A] [Module R A]
+  [AddCommMonoid B] [Module R B]
+  [AddCommMonoid C] [Module R C]
+  : A ⊗[R] (B ⊗[R] C) →ₗ[R] (A ⊗[R] B) ⊗[R] C
+  := LinearEquiv.symm (TensorProduct.assoc R A B C)
+
+theorem assoc_inv_is_inv  {R : Type} (A B C:Type)
+  [CommSemiring R]
+  [AddCommMonoid A] [Module R A]
+  [AddCommMonoid B] [Module R B]
+  [AddCommMonoid C] [Module R C]
+  :
+  (assoc_inv A B C : A ⊗[R] (B ⊗[R] C) →ₗ[R] (A ⊗[R] B) ⊗[R] C)
+  ∘ₗ
+  (assoc A B C : (A ⊗[R] B) ⊗[R] C →ₗ[R] A ⊗[R] (B ⊗[R] C))
+  =
+  (LinearMap.id : (A ⊗[R] B) ⊗[R] C →ₗ[R] (A ⊗[R] B) ⊗[R] C)
+  := by
+    simp [assoc,assoc_inv]
+
+theorem assoc_inv_is_inv'  {R : Type} (A B C:Type)
+  [CommSemiring R]
+  [AddCommMonoid A] [Module R A]
+  [AddCommMonoid B] [Module R B]
+  [AddCommMonoid C] [Module R C]
+  :
+  (assoc A B C : (A ⊗[R] B) ⊗[R] C →ₗ[R] A ⊗[R] (B ⊗[R] C))
+  ∘ₗ
+  (assoc_inv A B C : A ⊗[R] (B ⊗[R] C) →ₗ[R] (A ⊗[R] B) ⊗[R] C)
+  =
+  (LinearMap.id : A ⊗[R] (B ⊗[R] C) →ₗ[R] A ⊗[R] (B ⊗[R] C))
+  := by
+    simp [assoc,assoc_inv]
+end LinAlg
+
 /- --- Algebra definition --- -/
+section AlgebraDef
 /- This defines an associative unital algebra in terms of
    linear maps and tensor products (mathlib defines algebras
    as rings with a map of a commutative ring to the center
@@ -84,7 +132,10 @@ class AlgebraTens (R:Type) (A:Type)
     ∘ₗ (TensorProduct.assoc R A A A
         : (A ⊗[R] A) ⊗[R] A →ₗ[R] A ⊗[R] (A ⊗[R] A))
 
+end AlgebraDef
+
 /- --- Coalgebra definition --- -/
+section CoalgebraDef
 /- This is basically the same as in mathlib -/
 
 class CoalgebraTens (R:Type) (A:Type)
@@ -118,6 +169,9 @@ class CoalgebraTens (R:Type) (A:Type)
         : A ⊗[R] A →ₗ[R] A ⊗[R] (A ⊗[R] A))
     ∘ₗ (comul : A →ₗ[R] A ⊗[R] A)
 
+end CoalgebraDef
+
+section BialgebraDef
 /-
   Just "def mulAA" Produced a compiler error
   "compiler IR check failed at 'Hopf.mulAA._rarg',
@@ -226,6 +280,10 @@ extends AlgebraTens R A, CoalgebraTens R A where
   =
   ( LinearMap.id : R →ₗ[R] R )
 
+end BialgebraDef
+
+section HopfalgebraDef
+
 open AlgebraTens CoalgebraTens BialgebraTens
 
 structure AntipodeProp {R:Type} {A:Type}
@@ -264,5 +322,7 @@ class HopfAlgebraTens (R:Type) (A:Type)
 extends BialgebraTens R A where
   anti : A →ₗ[R] A
   hasAntipodeProp : AntipodeProp anti
+
+end HopfalgebraDef
 
 end Hopf
