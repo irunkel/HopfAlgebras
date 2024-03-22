@@ -1,5 +1,5 @@
 # HopfAlgebras
-An attempt to implement some aspects of Hopf algebras in Lean4, including examples. It uses linear algebra routines from Mathlib, but not the inbuild Hopf algebra libraries. One reason for this is that this is a learning project, and another reason is that I wanted to define algebras symmetrically to coalgebras as linear maps A ⊗ A → A. 
+An attempt to implement some aspects of Hopf algebras in Lean4, including examples. It uses linear algebra routines from Mathlib, but not the inbuild Hopf algebra libraries. One reason for this is that this is a learning project, and another reason is that I wanted to define algebras symmetrically to coalgebras as linear maps A ⊗ A → A.
 
 ## Basic.lean
 
@@ -30,7 +30,7 @@ TODOs: This example seems much more cumbersome than the group algebra one below,
 
 TODOs: try to show that `Fun {G} {K}` and `Alg {K} {G}` are dual to each other, ...
 
-## ConvolutionAntipode.lean
+## Convolution.lean
 
 Let `H` be a Hopf algebra over a commutative (semi)ring `R`.
 
@@ -38,9 +38,19 @@ Let `H` be a Hopf algebra over a commutative (semi)ring `R`.
 
 `AntipodeUnique`: The theorem that the antipode of `H` is unique. The proof is that the antipode is the inverse to the identity in the convolution algebra, and hence unique.
 
-*Work in progress.* The antipode is an algebra and coalgebra antihomomorphism. This is established by the theorems `Antipode_mul`, `Antipode_unit`, `Antipode_comul`, `Antipode_counit`.
+## AntipodeAntihom.lean
 
-TODOs: Many proofs are by terribly long calc chains which just shuffle coherence isos around, maybe the `coherence` tactic in the category theory framework can be used on this in some way?
+The antipode is an algebra and coalgebra antihomomorphism. 
+
+**Work in progress.**
+
+*Status:* I wanted to do this by translating a string diagram computation with the perspective of having this work the same way in braided categories. However, this has hit a bit of a roadblock. 
+For the unit and counit there are the theorems `Antipode_unit` and `Antipode_counit` whose proofs are terribly long calc chains which just shuffle coherence isos around. This is somewhat terrifying as the usual book proof is half a line ("This easily follows from ...").
+
+For `Antipode_mul` I have tried to map out the calculation by string diagrams on paper, and I can see that this will work in principle, but it will be *long*. 
+For `Antipode_comul` on can then just flip diagrams, but that will not make it shorter.
+
+TODOs: Find a more efficient way to do this. Maybe the `coherence` tactic in the category theory framework can be used  in some way?
 
 ## Further things to try
 
@@ -49,4 +59,5 @@ Try to implement more bits and pieces of Hopf algebras. E.g. the following would
 - Hopf modules and existence and uniqueness of (co)integrals
 - various versions of Uq(sl2)
 - R-matrices and braided monoidal structure on representation category
+- rewrite everything as Hopf algebras in braided monoidal categories 
 - ...

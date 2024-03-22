@@ -215,6 +215,7 @@ class CoalgebraTens (R:Type) (A:Type)
 
 end CoalgebraDef
 
+/- --- Bialgebra definition --- -/
 section BialgebraDef
 /-
   Just "def mulAA" Produced a compiler error
@@ -326,6 +327,7 @@ extends AlgebraTens R A, CoalgebraTens R A where
 
 end BialgebraDef
 
+/- --- Hopf algebra definition --- -/
 section HopfalgebraDef
 
 open AlgebraTens CoalgebraTens BialgebraTens
