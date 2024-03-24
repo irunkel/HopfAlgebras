@@ -56,7 +56,7 @@ theorem Alg_unit_βK_lemma (i:Fin 1) : Alg_unit (βK i) = (β (1:G) : @Alg K G)
 
 theorem Alg_one_mul :
   ( Alg_mul : (@Alg K G) ⊗[K] (@Alg K G) →ₗ[K] (@Alg K G))
-  ∘ₗ (LinearMap.rTensor Alg Alg_unit : K ⊗[K] (@Alg K G)  →ₗ[K]  (@Alg K G) ⊗[K] (@Alg K G))
+  ∘ₗ (TensorProduct.map Alg_unit LinearMap.id : K ⊗[K] (@Alg K G)  →ₗ[K]  (@Alg K G) ⊗[K] (@Alg K G))
   ∘ₗ (unitor_left_inv Alg : (@Alg K G) →ₗ[K] (K ⊗[K] (@Alg K G)))
   =
   (LinearMap.id : (@Alg K G) →ₗ[K] (@Alg K G))
@@ -68,7 +68,7 @@ theorem Alg_one_mul :
 
 theorem Alg_mul_one :
   ( Alg_mul : (@Alg K G) ⊗[K] (@Alg K G) →ₗ[K] (@Alg K G))
-  ∘ₗ (LinearMap.lTensor Alg Alg_unit : (@Alg K G) ⊗[K] K  →ₗ[K]  (@Alg K G) ⊗[K] (@Alg K G))
+  ∘ₗ (TensorProduct.map LinearMap.id Alg_unit : (@Alg K G) ⊗[K] K  →ₗ[K]  (@Alg K G) ⊗[K] (@Alg K G))
   ∘ₗ (unitor_right_inv Alg :  (@Alg K G) →ₗ[K] ((@Alg K G) ⊗[K] K))
   =
   (LinearMap.id : (@Alg K G) →ₗ[K] (@Alg K G))
@@ -80,11 +80,11 @@ theorem Alg_mul_one :
 
 theorem Alg_mul_assoc :
   ( Alg_mul : (@Alg K G) ⊗[K] (@Alg K G) →ₗ[K] (@Alg K G))
-  ∘ₗ (LinearMap.rTensor Alg Alg_mul
+  ∘ₗ (TensorProduct.map Alg_mul LinearMap.id
       : ((@Alg K G) ⊗[K] (@Alg K G)) ⊗[K] (@Alg K G) →ₗ[K] ((@Alg K G) ⊗[K] (@Alg K G)))
   =
   ( Alg_mul : (@Alg K G) ⊗[K] (@Alg K G) →ₗ[K] (@Alg K G))
-  ∘ₗ (LinearMap.lTensor Alg Alg_mul
+  ∘ₗ (TensorProduct.map LinearMap.id Alg_mul
       : (@Alg K G) ⊗[K] ((@Alg K G) ⊗[K] (@Alg K G)) →ₗ[K] ((@Alg K G) ⊗[K] (@Alg K G)))
   ∘ₗ (TensorProduct.assoc K (@Alg K G) (@Alg K G) (@Alg K G)
       : ((@Alg K G) ⊗[K] (@Alg K G)) ⊗[K] (@Alg K G) →ₗ[K] (@Alg K G) ⊗[K] ((@Alg K G) ⊗[K] (@Alg K G)))
@@ -117,7 +117,7 @@ noncomputable def Alg_counit : (@Alg K G) →ₗ[K] K :=
 
 theorem Alg_coone_comul :
   (unitor_left Alg : K ⊗[K] (@Alg K G) →ₗ[K] (@Alg K G))
-  ∘ₗ (LinearMap.rTensor Alg Alg_counit : (@Alg K G) ⊗[K] (@Alg K G)  →ₗ[K]  K ⊗[K] (@Alg K G))
+  ∘ₗ (TensorProduct.map Alg_counit LinearMap.id : (@Alg K G) ⊗[K] (@Alg K G)  →ₗ[K]  K ⊗[K] (@Alg K G))
   ∘ₗ ( Alg_comul : (@Alg K G) →ₗ[K] (@Alg K G) ⊗[K] (@Alg K G))
   =
   (LinearMap.id : (@Alg K G) →ₗ[K] (@Alg K G))
@@ -130,7 +130,7 @@ theorem Alg_coone_comul :
 
 theorem Alg_comul_coone :
   (unitor_right Alg :  (@Alg K G) ⊗[K] K →ₗ[K] (@Alg K G))
-  ∘ₗ (LinearMap.lTensor Alg Alg_counit : (@Alg K G) ⊗[K] (@Alg K G)  →ₗ[K]  (@Alg K G) ⊗[K] K)
+  ∘ₗ (TensorProduct.map LinearMap.id Alg_counit : (@Alg K G) ⊗[K] (@Alg K G)  →ₗ[K]  (@Alg K G) ⊗[K] K)
   ∘ₗ ( Alg_comul : (@Alg K G) →ₗ[K] (@Alg K G) ⊗[K] (@Alg K G))
   =
   (LinearMap.id : (@Alg K G) →ₗ[K] (@Alg K G))
@@ -144,11 +144,11 @@ theorem Alg_comul_coone :
 theorem Alg_comul_coassoc :
   (TensorProduct.assoc K (@Alg K G) (@Alg K G) (@Alg K G)
       : ((@Alg K G) ⊗[K] (@Alg K G)) ⊗[K] (@Alg K G) →ₗ[K] (@Alg K G) ⊗[K] ((@Alg K G) ⊗[K] (@Alg K G)))
-  ∘ₗ (LinearMap.rTensor Alg Alg_comul
+  ∘ₗ (TensorProduct.map Alg_comul LinearMap.id
       : (@Alg K G) ⊗[K] (@Alg K G) →ₗ[K] ((@Alg K G) ⊗[K] (@Alg K G)) ⊗[K] (@Alg K G))
   ∘ₗ ( Alg_comul : (@Alg K G) →ₗ[K] (@Alg K G) ⊗[K] (@Alg K G))
   =
-  (LinearMap.lTensor Alg Alg_comul
+  (TensorProduct.map LinearMap.id Alg_comul
       : (@Alg K G) ⊗[K] (@Alg K G) →ₗ[K] (@Alg K G) ⊗[K] ((@Alg K G) ⊗[K] (@Alg K G)))
   ∘ₗ ( Alg_comul : (@Alg K G) →ₗ[K] (@Alg K G) ⊗[K] (@Alg K G))
   := by
@@ -235,7 +235,7 @@ theorem Alg_counit_unit :
 theorem Alg_anti_left :
   ( Alg_mul : (@Alg K G) ⊗[K] (@Alg K G) →ₗ[K] (@Alg K G) )
   ∘ₗ
-  ( LinearMap.lTensor Alg Alg_anti : (@Alg K G) ⊗[K] (@Alg K G) →ₗ[K] (@Alg K G) ⊗[K] (@Alg K G) )
+  ( TensorProduct.map LinearMap.id Alg_anti : (@Alg K G) ⊗[K] (@Alg K G) →ₗ[K] (@Alg K G) ⊗[K] (@Alg K G) )
   ∘ₗ
   ( Alg_comul : (@Alg K G) →ₗ[K] (@Alg K G) ⊗[K] (@Alg K G) )
   =
@@ -253,7 +253,7 @@ theorem Alg_anti_left :
 theorem Alg_anti_right :
   ( Alg_mul : (@Alg K G) ⊗[K] (@Alg K G) →ₗ[K] (@Alg K G) )
   ∘ₗ
-  ( LinearMap.rTensor Alg Alg_anti : (@Alg K G) ⊗[K] (@Alg K G) →ₗ[K] (@Alg K G) ⊗[K] (@Alg K G) )
+  ( TensorProduct.map Alg_anti LinearMap.id : (@Alg K G) ⊗[K] (@Alg K G) →ₗ[K] (@Alg K G) ⊗[K] (@Alg K G) )
   ∘ₗ
   ( Alg_comul : (@Alg K G) →ₗ[K] (@Alg K G) ⊗[K] (@Alg K G) )
   =

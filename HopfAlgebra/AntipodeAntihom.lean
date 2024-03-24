@@ -32,7 +32,7 @@ theorem Antipode_unit :
       := by simp [comp_assoc]; rw [counit_unit]; simp
   _ =
   ( mul : H ⊗[R] H →ₗ[R] H )
-  ∘ₗ ( LinearMap.lTensor H anti : H ⊗[R] H →ₗ[R] H ⊗[R] H )
+  ∘ₗ ( map id anti : H ⊗[R] H →ₗ[R] H ⊗[R] H )
   ∘ₗ ( comul : H →ₗ[R] H ⊗[R] H )
   ∘ₗ ( unit : R →ₗ[R] H )
       := by rw [← hasAntipodeProp.left]; simp [comp_assoc]
@@ -41,7 +41,7 @@ theorem Antipode_unit :
   ∘ₗ ( map id anti : H ⊗[R] H →ₗ[R] H ⊗[R] H )
   ∘ₗ ( map unit unit : R ⊗[R] R →ₗ[R] H ⊗[R] H )
   ∘ₗ ( unitor_left_inv R : R →ₗ[R] R ⊗[R] R )
-      := by rw [← comul_unit]; simp [lTensor]
+      := by rw [← comul_unit]
   _ =
   ( mul : H ⊗[R] H →ₗ[R] H )
   ∘ₗ ( map (id ∘ₗ unit) (anti ∘ₗ unit) : R ⊗[R] R →ₗ[R] H ⊗[R] H )
@@ -55,15 +55,15 @@ theorem Antipode_unit :
       := by rw [← map_comp]; simp [comp_assoc]
   _ =
   ( mul : H ⊗[R] H →ₗ[R] H )
-  ∘ₗ ( rTensor H unit : R ⊗[R] H →ₗ[R] H ⊗[R] H )
+  ∘ₗ ( map unit id : R ⊗[R] H →ₗ[R] H ⊗[R] H )
   ∘ₗ (( unitor_left_inv H : H →ₗ[R] R ⊗[R] H )
   ∘ₗ ( unitor_left H : R ⊗[R] H →ₗ[R] H ))
   ∘ₗ ( map id (anti ∘ₗ unit) : R ⊗[R] R →ₗ[R] R ⊗[R] H )
   ∘ₗ ( unitor_left_inv R : R →ₗ[R] R ⊗[R] R )
-      := by rw [unitor_left_inv_is_inv H]; simp [rTensor,comp_assoc]
+      := by rw [unitor_left_inv_is_inv H]; simp [comp_assoc]
   _ =
   (( mul : H ⊗[R] H →ₗ[R] H )
-  ∘ₗ ( rTensor H unit : R ⊗[R] H →ₗ[R] H ⊗[R] H )
+  ∘ₗ ( map unit id : R ⊗[R] H →ₗ[R] H ⊗[R] H )
   ∘ₗ ( unitor_left_inv H : H →ₗ[R] R ⊗[R] H ))
   ∘ₗ ( unitor_left H : R ⊗[R] H →ₗ[R] H )
   ∘ₗ ( map id (anti ∘ₗ unit) : R ⊗[R] R →ₗ[R] R ⊗[R] H )
@@ -102,13 +102,13 @@ theorem Antipode_counit :
   _ =
   ( counit : H →ₗ[R] R )
   ∘ₗ (( mul : H ⊗[R] H →ₗ[R] H )
-  ∘ₗ ( LinearMap.lTensor H anti : H ⊗[R] H →ₗ[R] H ⊗[R] H )
+  ∘ₗ ( map id anti : H ⊗[R] H →ₗ[R] H ⊗[R] H )
   ∘ₗ ( comul : H →ₗ[R] H ⊗[R] H ))
       := by rw [hasAntipodeProp.left]; simp [comp_assoc]
   _ =
   (( counit : H →ₗ[R] R )
   ∘ₗ ( mul : H ⊗[R] H →ₗ[R] H ))
-  ∘ₗ ( LinearMap.lTensor H anti : H ⊗[R] H →ₗ[R] H ⊗[R] H )
+  ∘ₗ ( map id anti : H ⊗[R] H →ₗ[R] H ⊗[R] H )
   ∘ₗ ( comul : H →ₗ[R] H ⊗[R] H )
       := by simp [comp_assoc]
   _ =
@@ -116,7 +116,7 @@ theorem Antipode_counit :
   ∘ₗ ( map counit counit : H ⊗[R] H →ₗ[R] R ⊗[R] R )
   ∘ₗ ( map id anti : H ⊗[R] H →ₗ[R] H ⊗[R] H )
   ∘ₗ ( comul : H →ₗ[R] H ⊗[R] H )
-      := by rw [counit_mul]; simp [lTensor,comp_assoc]
+      := by rw [counit_mul]; simp [comp_assoc]
   _ =
   ( unitor_left R : R ⊗[R] R →ₗ[R] R )
   ∘ₗ ( map (counit ∘ₗ id) (counit ∘ₗ anti) : H ⊗[R] H →ₗ[R] R ⊗[R] R )
@@ -133,15 +133,15 @@ theorem Antipode_counit :
   ∘ₗ ( map id (counit ∘ₗ anti) : R ⊗[R] H →ₗ[R] R ⊗[R] R )
   ∘ₗ (( unitor_left_inv H : H →ₗ[R] R ⊗[R] H )
   ∘ₗ ( unitor_left H : R ⊗[R] H →ₗ[R] H ))
-  ∘ₗ ( rTensor H counit : H ⊗[R] H →ₗ[R] R ⊗[R] H )
+  ∘ₗ ( map counit id : H ⊗[R] H →ₗ[R] R ⊗[R] H )
   ∘ₗ ( comul : H →ₗ[R] H ⊗[R] H )
-      := by rw [unitor_left_inv_is_inv H]; simp [rTensor,comp_assoc]
+      := by rw [unitor_left_inv_is_inv H]; simp [comp_assoc]
   _ =
   ( unitor_left R : R ⊗[R] R →ₗ[R] R )
   ∘ₗ ( map id (counit ∘ₗ anti) : R ⊗[R] H →ₗ[R] R ⊗[R] R )
   ∘ₗ ( unitor_left_inv H : H →ₗ[R] R ⊗[R] H )
   ∘ₗ (( unitor_left H : R ⊗[R] H →ₗ[R] H )
-  ∘ₗ ( rTensor H counit : H ⊗[R] H →ₗ[R] R ⊗[R] H )
+  ∘ₗ ( map counit id : H ⊗[R] H →ₗ[R] R ⊗[R] H )
   ∘ₗ ( comul : H →ₗ[R] H ⊗[R] H ))
       := by simp [comp_assoc]
   _ =
@@ -164,6 +164,7 @@ theorem Antipode_counit :
     := by simp [unitor_left_inv_is_inv']
 
 /- *** Below  are only temporary attempts *** -/
+section Work_in_progress_needs_a_different_approach
 
 /- TODO: How do I make it forget the temporary assignments?
    I failed putting it into the theorem with let, that gave a
@@ -296,5 +297,7 @@ theorem Antipode_comul :
   (comul : H →ₗ[R] H ⊗[R] H)
   := by
     sorry
+
+end Work_in_progress_needs_a_different_approach
 
 end AntipodeProperties

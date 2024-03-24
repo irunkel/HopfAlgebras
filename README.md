@@ -42,7 +42,7 @@ Let `H` be a Hopf algebra over a commutative (semi)ring `R`.
 
 The antipode is an algebra and coalgebra antihomomorphism. 
 
-**Work in progress.**
+**Work in progress - on hold until a better method is found**
 
 *Status:* I wanted to do this by translating a string diagram computation with the perspective of having this work the same way in braided categories. However, this has hit a bit of a roadblock. 
 For the unit and counit there are the theorems `Antipode_unit` and `Antipode_counit` whose proofs are terribly long calc chains which just shuffle coherence isos around. This is somewhat terrifying as the usual book proof is half a line ("This easily follows from ...").
@@ -51,6 +51,14 @@ For `Antipode_mul` I have tried to map out the calculation by string diagrams on
 For `Antipode_comul` on can then just flip diagrams, but that will not make it shorter.
 
 TODOs: Find a more efficient way to do this. Maybe the `coherence` tactic in the category theory framework can be used  in some way?
+
+## HopfPairing.lean
+
+A pairing between two bialgebras `A` and `B`, which is compatible with (co)unit and (co)product. For a pairing `ω : A ⊗ B → R`, these compatibility conditions are bundled in `structure Pairing`.
+
+`PairingAntipode`: The statement that a pairing of bialgebras automatically preserves the antipode of a Hopf algebra
+
+TODOs: Very tedious proof by coherence shuffling, more efficient method to translate string diagram equalities would make it shorter. (See `HopfPairing - Pairing preserves antipode (string diagrams).pdf` for the string diagram calculation.)
 
 ## Further things to try
 

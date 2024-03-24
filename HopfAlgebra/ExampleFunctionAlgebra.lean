@@ -54,11 +54,11 @@ theorem Fun_mul_ββ_lemma  {g h : G} : Fun_mul ((β g) ⊗ₜ[K] (β h)) = Fun_
 
 theorem Fun_mul_assoc :
     (Fun_mul : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K))
-    ∘ₗ (LinearMap.rTensor Fun Fun_mul
+    ∘ₗ (TensorProduct.map Fun_mul LinearMap.id
         : ((@Fun G K) ⊗[K] (@Fun G K)) ⊗[K] (@Fun G K) →ₗ[K] ((@Fun G K) ⊗[K] (@Fun G K)))
     =
     (Fun_mul : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K))
-    ∘ₗ (LinearMap.lTensor Fun Fun_mul
+    ∘ₗ (TensorProduct.map LinearMap.id Fun_mul
         : (@Fun G K) ⊗[K] ((@Fun G K) ⊗[K] (@Fun G K)) →ₗ[K] ((@Fun G K) ⊗[K] (@Fun G K)))
     ∘ₗ (TensorProduct.assoc K (@Fun G K) (@Fun G K) (@Fun G K)
         : ((@Fun G K) ⊗[K] (@Fun G K)) ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K) ⊗[K] ((@Fun G K) ⊗[K] (@Fun G K)))
@@ -103,7 +103,7 @@ noncomputable def Fun_unit : K →ₗ[K] (@Fun G K) :=
 
 theorem Fun_one_mul :
     (Fun_mul : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K))
-    ∘ₗ (LinearMap.rTensor Fun Fun_unit : K ⊗[K] (@Fun G K)  →ₗ[K]  (@Fun G K) ⊗[K] (@Fun G K))
+    ∘ₗ (TensorProduct.map Fun_unit LinearMap.id : K ⊗[K] (@Fun G K)  →ₗ[K]  (@Fun G K) ⊗[K] (@Fun G K))
     ∘ₗ (unitor_left_inv Fun : (@Fun G K) →ₗ[K] (K ⊗[K] (@Fun G K)))
     =
     (LinearMap.id : (@Fun G K) →ₗ[K] (@Fun G K))
@@ -116,7 +116,7 @@ theorem Fun_one_mul :
 
 theorem Fun_mul_one :
     (Fun_mul : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K))
-    ∘ₗ (LinearMap.lTensor Fun Fun_unit : (@Fun G K) ⊗[K] K  →ₗ[K]  (@Fun G K) ⊗[K] (@Fun G K))
+    ∘ₗ (TensorProduct.map LinearMap.id Fun_unit : (@Fun G K) ⊗[K] K  →ₗ[K]  (@Fun G K) ⊗[K] (@Fun G K))
     ∘ₗ (unitor_right_inv Fun :  (@Fun G K) →ₗ[K] ((@Fun G K) ⊗[K] K))
     =
     (LinearMap.id : (@Fun G K) →ₗ[K] (@Fun G K))
@@ -165,7 +165,7 @@ theorem mul_inv_one_iff_eq_inv' (g h : G) :
 
 theorem Fun_coone_comul :
   (unitor_left Fun : K ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K))
-  ∘ₗ (LinearMap.rTensor Fun Fun_counit : (@Fun G K) ⊗[K] (@Fun G K)  →ₗ[K]  K ⊗[K] (@Fun G K))
+  ∘ₗ (TensorProduct.map Fun_counit LinearMap.id : (@Fun G K) ⊗[K] (@Fun G K)  →ₗ[K]  K ⊗[K] (@Fun G K))
   ∘ₗ (Fun_comul : (@Fun G K) →ₗ[K] (@Fun G K) ⊗[K] (@Fun G K))
   =
   (LinearMap.id : (@Fun G K) →ₗ[K] (@Fun G K))
@@ -191,7 +191,7 @@ theorem Fun_coone_comul :
 
 theorem Fun_comul_coone :
   (unitor_right Fun :  (@Fun G K) ⊗[K] K →ₗ[K] (@Fun G K))
-  ∘ₗ (LinearMap.lTensor Fun Fun_counit : (@Fun G K) ⊗[K] (@Fun G K)  →ₗ[K]  (@Fun G K) ⊗[K] K)
+  ∘ₗ (TensorProduct.map LinearMap.id Fun_counit : (@Fun G K) ⊗[K] (@Fun G K)  →ₗ[K]  (@Fun G K) ⊗[K] K)
   ∘ₗ (Fun_comul : (@Fun G K) →ₗ[K] (@Fun G K) ⊗[K] (@Fun G K))
   =
   (LinearMap.id : (@Fun G K) →ₗ[K] (@Fun G K))
@@ -233,11 +233,11 @@ theorem group_sum_inv {α : Type} [AddCommMonoid α] (f:G → α) :
 theorem Fun_comul_coassoc :
   (TensorProduct.assoc K (@Fun G K) (@Fun G K) (@Fun G K)
       : ((@Fun G K) ⊗[K] (@Fun G K)) ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K) ⊗[K] ((@Fun G K) ⊗[K] (@Fun G K)))
-  ∘ₗ (LinearMap.rTensor Fun Fun_comul
+  ∘ₗ (TensorProduct.map Fun_comul LinearMap.id
       : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] ((@Fun G K) ⊗[K] (@Fun G K)) ⊗[K] (@Fun G K))
   ∘ₗ (Fun_comul : (@Fun G K) →ₗ[K] (@Fun G K) ⊗[K] (@Fun G K))
   =
-  (LinearMap.lTensor Fun Fun_comul
+  (TensorProduct.map LinearMap.id Fun_comul
       : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K) ⊗[K] ((@Fun G K) ⊗[K] (@Fun G K)))
   ∘ₗ (Fun_comul : (@Fun G K) →ₗ[K] (@Fun G K) ⊗[K] (@Fun G K))
   := by
@@ -412,7 +412,7 @@ theorem Fun_counit_unit :
 theorem Fun_anti_left :
   ( Fun_mul : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K) )
   ∘ₗ
-  ( LinearMap.lTensor Fun Fun_anti : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K) ⊗[K] (@Fun G K) )
+  ( TensorProduct.map LinearMap.id Fun_anti : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K) ⊗[K] (@Fun G K) )
   ∘ₗ
   ( Fun_comul : (@Fun G K) →ₗ[K] (@Fun G K) ⊗[K] (@Fun G K) )
   =
@@ -434,7 +434,7 @@ theorem Fun_anti_left :
 theorem Fun_anti_right :
   ( Fun_mul : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K) )
   ∘ₗ
-  ( LinearMap.rTensor Fun Fun_anti : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K) ⊗[K] (@Fun G K) )
+  ( TensorProduct.map Fun_anti LinearMap.id : (@Fun G K) ⊗[K] (@Fun G K) →ₗ[K] (@Fun G K) ⊗[K] (@Fun G K) )
   ∘ₗ
   ( Fun_comul : (@Fun G K) →ₗ[K] (@Fun G K) ⊗[K] (@Fun G K) )
   =

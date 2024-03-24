@@ -1,5 +1,4 @@
 import Mathlib.LinearAlgebra.TensorProduct.Basic
-import Mathlib.LinearAlgebra.TensorProduct.Basis
 import HopfAlgebra.Basic
 
 open LinearMap TensorProduct
@@ -31,7 +30,7 @@ noncomputable def convAlg_mul_aux : ((@convAlg R _ H _ _) ⊗[R] (@convAlg R _ H
   ∘ₗ
   (aux : (convAlg ⊗[R] convAlg) ⊗[R] (H ⊗[R] H) →ₗ[R] (H ⊗[R] H))
   ∘ₗ
-  (lTensor (convAlg ⊗[R] convAlg) comul
+  (map id comul
     : (convAlg ⊗[R] convAlg) ⊗[R] H →ₗ[R] ((@convAlg R _ H _ _) ⊗[R] (@convAlg R _ H _ _)) ⊗[R] (H ⊗[R] H))
 )
 
@@ -87,11 +86,11 @@ theorem convAlg_one_mul_el (f : (@convAlg R _ H _ _)) :
             := by rw [map_comp]; rfl
       _ = mul ∘ₗ (map unit f) ∘ₗ ((unitor_left_inv H)
           ∘ₗ (unitor_left H))
-          ∘ₗ (rTensor H counit) ∘ₗ comul
-            := by simp [rTensor]; simp [unitor_left_inv_is_inv]
+          ∘ₗ (map counit id) ∘ₗ comul
+            := by simp [unitor_left_inv_is_inv]
       _ = mul ∘ₗ (map unit f) ∘ₗ (unitor_left_inv H)
           ∘ₗ (unitor_left H)
-          ∘ₗ (rTensor H counit) ∘ₗ comul
+          ∘ₗ (map counit id) ∘ₗ comul
             := by simp [comp_assoc]
       _ = mul ∘ₗ (map unit f) ∘ₗ (unitor_left_inv H)
             := by simp [CoalgebraTens.coone_comul]
@@ -106,11 +105,11 @@ theorem convAlg_one_mul_el (f : (@convAlg R _ H _ _)) :
             ∘ₗ (map id f)
             ∘ₗ (unitor_left_inv H)
             := by simp [unitor_left_inv_is_inv]
-      _ = (mul ∘ₗ (rTensor H unit)
+      _ = (mul ∘ₗ (map unit id)
             ∘ₗ (unitor_left_inv H)) ∘ₗ (unitor_left H)
             ∘ₗ (map id f)
             ∘ₗ (unitor_left_inv H)
-            := by simp [rTensor]; simp [comp_assoc]
+            := by simp [comp_assoc]
       _ = (unitor_left H)
             ∘ₗ (map id f)
             ∘ₗ (unitor_left_inv H)
@@ -135,11 +134,11 @@ theorem convAlg_mul_one_el (f : (@convAlg R _ H _ _)) :
             := by rw [map_comp]; rfl
       _ = mul ∘ₗ (map f unit) ∘ₗ ((unitor_right_inv H)
           ∘ₗ (unitor_right H))
-          ∘ₗ (lTensor H counit) ∘ₗ comul
-            := by simp [lTensor]; simp [unitor_right_inv_is_inv]
+          ∘ₗ (map id counit) ∘ₗ comul
+            := by simp [unitor_right_inv_is_inv]
       _ = mul ∘ₗ (map f unit) ∘ₗ (unitor_right_inv H)
           ∘ₗ (unitor_right H)
-          ∘ₗ (lTensor H counit) ∘ₗ comul
+          ∘ₗ (map id counit) ∘ₗ comul
             := by simp [comp_assoc]
       _ = mul ∘ₗ (map f unit) ∘ₗ (unitor_right_inv H)
             := by simp [CoalgebraTens.comul_coone]
@@ -155,11 +154,11 @@ theorem convAlg_mul_one_el (f : (@convAlg R _ H _ _)) :
             ∘ₗ (map f id)
             ∘ₗ (unitor_right_inv H)
             := by simp [unitor_right_inv_is_inv]
-      _ = (mul ∘ₗ (lTensor H unit)
+      _ = (mul ∘ₗ (map id unit)
             ∘ₗ (unitor_right_inv H)) ∘ₗ (unitor_right H)
             ∘ₗ (map f id)
             ∘ₗ (unitor_right_inv H)
-            := by simp [lTensor]; simp [comp_assoc]
+            := by simp [comp_assoc]
       _ = (unitor_right H)
             ∘ₗ (map f id)
             ∘ₗ (unitor_right_inv H)
@@ -199,19 +198,12 @@ theorem convAlg_mul_assoc_el (f g h: (@convAlg R _ H _ _)) :
       := by rw [map_comp]; simp [comp_assoc]
   _ =
   (mul
-  ∘ₗ lTensor H mul)
-  ∘ₗ map f (map g h)
-  ∘ₗ (lTensor H comul
-  ∘ₗ comul)
-      := by simp [lTensor]
-  _ =
-  (mul
-  ∘ₗ lTensor H mul)
+  ∘ₗ map id mul)
   ∘ₗ (assoc H H H
   ∘ₗ assoc_inv H H H)
   ∘ₗ map f (map g h)
   ∘ₗ (assoc H H H
-  ∘ₗ rTensor H comul
+  ∘ₗ map comul id
   ∘ₗ comul)
       := by
         rw [assoc_inv_is_inv']
@@ -219,21 +211,21 @@ theorem convAlg_mul_assoc_el (f g h: (@convAlg R _ H _ _)) :
         simp [comp_assoc,assoc]
   _ =
   (mul
-  ∘ₗ lTensor H mul
+  ∘ₗ map id mul
   ∘ₗ assoc H H H)
   ∘ₗ (assoc_inv H H H
   ∘ₗ map f (map g h)
   ∘ₗ assoc H H H)
-  ∘ₗ (rTensor H comul
+  ∘ₗ (map comul id
   ∘ₗ comul)
       := by simp [comp_assoc]
   _ =
   (mul
-  ∘ₗ rTensor H mul)
+  ∘ₗ map mul id)
   ∘ₗ (assoc_inv H H H
   ∘ₗ assoc H H H
   ∘ₗ map (map f g) h)
-  ∘ₗ (rTensor H comul
+  ∘ₗ (map comul id
   ∘ₗ comul)
       := by
         rw [AlgebraTens.mul_assoc]
@@ -242,27 +234,20 @@ theorem convAlg_mul_assoc_el (f g h: (@convAlg R _ H _ _)) :
         rw [← assoc]
   _ =
   mul
-  ∘ₗ rTensor H mul
+  ∘ₗ map mul id
   ∘ₗ (assoc_inv H H H
   ∘ₗ assoc H H H)
   ∘ₗ map (map f g) h
-  ∘ₗ rTensor H comul
+  ∘ₗ map comul id
   ∘ₗ comul
       := by simp [comp_assoc]
-  _ =
-  mul
-  ∘ₗ rTensor H mul
-  ∘ₗ map (map f g) h
-  ∘ₗ rTensor H comul
-  ∘ₗ comul
-      := by rw [assoc_inv_is_inv]; simp
   _ =
   mul
   ∘ₗ map mul id
   ∘ₗ map (map f g) h
   ∘ₗ map comul id
   ∘ₗ comul
-      := by simp [rTensor]
+      := by rw [assoc_inv_is_inv]; simp
   _ =
   mul
   ∘ₗ map (mul ∘ₗ map f g) (id ∘ₗ h)
@@ -301,23 +286,15 @@ noncomputable instance : AlgebraTens R (@convAlg R _ H _ _) where
     intro f g h
     simp [convAlg_mul_assoc_el]
 
-theorem tensor_id_f (f:H →ₗ[R] H): map id f = lTensor H f
-  := by simp [lTensor]
-
-theorem tensor_f_id (f:H →ₗ[R] H): map f id = rTensor H f
-  := by simp [rTensor]
-
 theorem conv_id_S : convAlg_mul ((id : H →ₗ[R] H) ⊗ₜ[R] anti) = convAlg_unit_el
   := by
     rw [convAlg_mul_apply]
-    rw [tensor_id_f]
     rw [hasAntipodeProp.left]
     rw [convAlg_unit_el]
 
 theorem conv_S_id : convAlg_mul (anti ⊗ₜ[R] (id : H →ₗ[R] H)) = convAlg_unit_el
   := by
     rw [convAlg_mul_apply]
-    rw [tensor_f_id]
     rw [hasAntipodeProp.right]
     rw [convAlg_unit_el]
 
@@ -337,7 +314,6 @@ theorem AntipodeUnique (f : H →ₗ[R] H) (h: AntipodeProp f) :
     have : convAlg_mul (f ⊗ₜ[R] id) = u
       := by
         rw [convAlg_mul_apply]
-        rw [tensor_f_id]
         rw [h.right]
         simp [u,convAlg_unit_el]
 

@@ -135,6 +135,60 @@ theorem assoc_inv_is_inv'  {R : Type} (A B C:Type)
   (LinearMap.id : A ⊗[R] (B ⊗[R] C) →ₗ[R] A ⊗[R] (B ⊗[R] C))
   := by
     simp [assoc,assoc_inv]
+
+theorem assoc_nat {R : Type} (A B C A' B' C':Type)
+  [CommSemiring R]
+  [AddCommMonoid A] [Module R A]
+  [AddCommMonoid B] [Module R B]
+  [AddCommMonoid C] [Module R C]
+  [AddCommMonoid A'] [Module R A']
+  [AddCommMonoid B'] [Module R B']
+  [AddCommMonoid C'] [Module R C']
+  (f : A →ₗ[R] A')
+  (g : B →ₗ[R] B')
+  (h : C →ₗ[R] C')
+  :
+  ( TensorProduct.map f (TensorProduct.map g h) : A ⊗[R] (B ⊗[R] C) →ₗ[R] A' ⊗[R] (B' ⊗[R] C') )
+  ∘ₗ
+  ( assoc A B C : (A ⊗[R] B) ⊗[R] C →ₗ[R] A ⊗[R] (B ⊗[R] C) )
+  =
+  ( assoc A' B' C' : (A' ⊗[R] B') ⊗[R] C' →ₗ[R] A' ⊗[R] (B' ⊗[R] C') )
+  ∘ₗ
+  ( TensorProduct.map (TensorProduct.map f g) h : (A ⊗[R] B) ⊗[R] C →ₗ[R] (A' ⊗[R] B') ⊗[R] C' )
+  := by
+    simp [assoc,TensorProduct.map_map_comp_assoc_eq]
+
+theorem assoc_inv_nat {R : Type} (A B C A' B' C':Type)
+  [CommSemiring R]
+  [AddCommMonoid A] [Module R A]
+  [AddCommMonoid B] [Module R B]
+  [AddCommMonoid C] [Module R C]
+  [AddCommMonoid A'] [Module R A']
+  [AddCommMonoid B'] [Module R B']
+  [AddCommMonoid C'] [Module R C']
+  (f : A →ₗ[R] A')
+  (g : B →ₗ[R] B')
+  (h : C →ₗ[R] C')
+  :
+  ( TensorProduct.map (TensorProduct.map f g) h : (A ⊗[R] B) ⊗[R] C →ₗ[R] (A' ⊗[R] B') ⊗[R] C' )
+  ∘ₗ
+  ( assoc_inv A B C : A ⊗[R] (B ⊗[R] C) →ₗ[R] (A ⊗[R] B) ⊗[R] C )
+  =
+  ( assoc_inv A' B' C' : A' ⊗[R] (B' ⊗[R] C') →ₗ[R] (A' ⊗[R] B') ⊗[R] C' )
+  ∘ₗ
+  ( TensorProduct.map f (TensorProduct.map g h) : A ⊗[R] (B ⊗[R] C) →ₗ[R] A' ⊗[R] (B' ⊗[R] C') )
+  := by
+    calc
+      ( TensorProduct.map (TensorProduct.map f g) h ) ∘ₗ ( assoc_inv A B C )
+        = (( assoc_inv A' B' C' ) ∘ₗ ( assoc A' B' C' )) ∘ₗ ( TensorProduct.map (TensorProduct.map f g) h ) ∘ₗ ( assoc_inv A B C )
+            := by rw [assoc_inv_is_inv]; simp
+      _ = ( assoc_inv A' B' C' ) ∘ₗ (( assoc A' B' C' ) ∘ₗ ( TensorProduct.map (TensorProduct.map f g) h )) ∘ₗ ( assoc_inv A B C )
+            := by simp [LinearMap.comp_assoc]
+      _ = ( assoc_inv A' B' C' ) ∘ₗ ( TensorProduct.map f (TensorProduct.map g h) ) ∘ₗ ( assoc A B C ) ∘ₗ ( assoc_inv A B C )
+            := by rw [← assoc_nat]; simp [LinearMap.comp_assoc]
+      _ = ( assoc_inv A' B' C' ) ∘ₗ ( TensorProduct.map f (TensorProduct.map g h) )
+            := by rw [assoc_inv_is_inv']; simp
+
 end LinAlg
 
 /- --- Algebra definition --- -/
@@ -153,28 +207,87 @@ class AlgebraTens (R:Type) (A:Type)
 
   one_mul :
     (mul : A ⊗[R] A →ₗ[R] A)
-    ∘ₗ (LinearMap.rTensor A unit : R ⊗[R] A  →ₗ[R]  A ⊗[R] A)
+    ∘ₗ (TensorProduct.map unit LinearMap.id : R ⊗[R] A  →ₗ[R]  A ⊗[R] A)
     ∘ₗ (unitor_left_inv A :  A →ₗ[R] (R ⊗[R] A))
     =
     (LinearMap.id : A →ₗ[R] A)
 
   mul_one :
     (mul : A ⊗[R] A →ₗ[R] A)
-    ∘ₗ (LinearMap.lTensor A unit : A ⊗[R] R  →ₗ[R]  A ⊗[R] A)
+    ∘ₗ (TensorProduct.map LinearMap.id unit : A ⊗[R] R  →ₗ[R]  A ⊗[R] A)
     ∘ₗ (unitor_right_inv A :  A →ₗ[R] (A ⊗[R] R))
     =
     (LinearMap.id : A →ₗ[R] A)
 
   mul_assoc :
     (mul : A ⊗[R] A →ₗ[R] A)
-    ∘ₗ (LinearMap.rTensor A mul
+    ∘ₗ (TensorProduct.map mul LinearMap.id
         : (A ⊗[R] A) ⊗[R] A →ₗ[R] (A ⊗[R] A))
     =
     (mul : A ⊗[R] A →ₗ[R] A)
-    ∘ₗ (LinearMap.lTensor A mul
+    ∘ₗ (TensorProduct.map LinearMap.id mul
         : A ⊗[R] (A ⊗[R] A) →ₗ[R] (A ⊗[R] A))
     ∘ₗ (TensorProduct.assoc R A A A
         : (A ⊗[R] A) ⊗[R] A →ₗ[R] A ⊗[R] (A ⊗[R] A))
+
+
+namespace AlgebraTens
+
+open LinearMap TensorProduct
+
+variable {A R : Type}
+  [CommSemiring R] [AddCommMonoid A] [Module R A]
+  [AlgebraTens R A]
+
+lemma one_mul' :
+    (mul : A ⊗[R] A →ₗ[R] A)
+    ∘ₗ (map unit id : R ⊗[R] A  →ₗ[R]  A ⊗[R] A)
+    =
+    (unitor_left A : R ⊗[R] A →ₗ[R] A)
+  := by
+  calc
+    mul ∘ₗ (map unit id)
+      = mul ∘ₗ (map unit id) ∘ₗ (unitor_left_inv A) ∘ₗ (unitor_left A)
+        := by rw [unitor_left_inv_is_inv]; simp
+    _ = (mul ∘ₗ (map unit id) ∘ₗ (unitor_left_inv A)) ∘ₗ (unitor_left A)
+        := by simp [comp_assoc]
+    _ = (unitor_left A)
+        := by rw [one_mul]; simp
+
+lemma mul_one' :
+    (mul : A ⊗[R] A →ₗ[R] A)
+    ∘ₗ (map id unit : A ⊗[R] R  →ₗ[R]  A ⊗[R] A)
+    =
+    (unitor_right A : A ⊗[R] R →ₗ[R] A)
+  := by
+  calc
+    mul ∘ₗ (map id unit)
+      = mul ∘ₗ (map id unit) ∘ₗ (unitor_right_inv A) ∘ₗ (unitor_right A)
+        := by rw [unitor_right_inv_is_inv]; simp
+    _ = (mul ∘ₗ (map id unit) ∘ₗ (unitor_right_inv A)) ∘ₗ (unitor_right A)
+        := by simp [comp_assoc]
+    _ = (unitor_right A)
+        := by rw [mul_one]; simp
+
+lemma mul_assoc' :
+    (mul : A ⊗[R] A →ₗ[R] A)
+    ∘ₗ (map id mul : A ⊗[R] (A ⊗[R] A) →ₗ[R] (A ⊗[R] A))
+    =
+    (mul : A ⊗[R] A →ₗ[R] A)
+    ∘ₗ (map mul id : (A ⊗[R] A) ⊗[R] A →ₗ[R] (A ⊗[R] A))
+    ∘ₗ (assoc_inv A A A
+        : A ⊗[R] (A ⊗[R] A) →ₗ[R] (A ⊗[R] A) ⊗[R] A)
+  := by
+  calc
+    mul ∘ₗ (map id mul)
+      = mul ∘ₗ (map id mul) ∘ₗ (assoc A A A) ∘ₗ (assoc_inv A A A)
+          := by rw [assoc_inv_is_inv']; simp
+    _ = (mul ∘ₗ (map id mul) ∘ₗ (assoc A A A)) ∘ₗ (assoc_inv A A A)
+          := by simp [comp_assoc]
+    _ = mul ∘ₗ (map mul id) ∘ₗ (assoc_inv A A A)
+          := by rw [assoc,← mul_assoc]; simp [comp_assoc]
+
+end AlgebraTens
 
 end AlgebraDef
 
@@ -190,14 +303,14 @@ class CoalgebraTens (R:Type) (A:Type)
 
   coone_comul :
     (unitor_left A : R ⊗[R] A →ₗ[R] A)
-    ∘ₗ (LinearMap.rTensor A counit : A ⊗[R] A  →ₗ[R]  R ⊗[R] A)
+    ∘ₗ (TensorProduct.map counit LinearMap.id : A ⊗[R] A  →ₗ[R]  R ⊗[R] A)
     ∘ₗ (comul : A →ₗ[R] A ⊗[R] A)
     =
     (LinearMap.id : A →ₗ[R] A)
 
   comul_coone :
     (unitor_right A :  A ⊗[R] R →ₗ[R] A)
-    ∘ₗ (LinearMap.lTensor A counit : A ⊗[R] A  →ₗ[R]  A ⊗[R] R)
+    ∘ₗ (TensorProduct.map LinearMap.id counit : A ⊗[R] A  →ₗ[R]  A ⊗[R] R)
     ∘ₗ (comul : A →ₗ[R] A ⊗[R] A)
     =
     (LinearMap.id : A →ₗ[R] A)
@@ -205,13 +318,70 @@ class CoalgebraTens (R:Type) (A:Type)
   comul_coassoc :
     (TensorProduct.assoc R A A A
         : (A ⊗[R] A) ⊗[R] A →ₗ[R] A ⊗[R] (A ⊗[R] A))
-    ∘ₗ (LinearMap.rTensor A comul
+    ∘ₗ (TensorProduct.map comul LinearMap.id
         : A ⊗[R] A →ₗ[R] (A ⊗[R] A) ⊗[R] A)
     ∘ₗ (comul : A →ₗ[R] A ⊗[R] A)
     =
-    (LinearMap.lTensor A comul
+    (TensorProduct.map LinearMap.id comul
         : A ⊗[R] A →ₗ[R] A ⊗[R] (A ⊗[R] A))
     ∘ₗ (comul : A →ₗ[R] A ⊗[R] A)
+
+namespace CoalgebraTens
+
+open LinearMap TensorProduct
+
+variable {A R : Type}
+  [CommSemiring R] [AddCommMonoid A] [Module R A]
+  [CoalgebraTens R A]
+
+lemma coone_comul' :
+    (map counit id : A ⊗[R] A  →ₗ[R]  R ⊗[R] A)
+    ∘ₗ (comul : A →ₗ[R] A ⊗[R] A)
+    =
+    (unitor_left_inv A : A →ₗ[R] R ⊗[R] A)
+  := by
+  calc
+    (map counit id) ∘ₗ comul
+      = ((unitor_left_inv A) ∘ₗ (unitor_left A)) ∘ₗ (map counit id) ∘ₗ comul
+        := by rw [unitor_left_inv_is_inv]; simp
+    _ = (unitor_left_inv A) ∘ₗ (unitor_left A) ∘ₗ (map counit id) ∘ₗ comul
+        := by simp [comp_assoc]
+    _ = (unitor_left_inv A)
+        := by rw [coone_comul]; simp
+
+lemma comul_coone' :
+    (map id counit : A ⊗[R] A →ₗ[R] A ⊗[R] R)
+    ∘ₗ (comul : A →ₗ[R] A ⊗[R] A)
+    =
+    (unitor_right_inv A : A →ₗ[R] A ⊗[R] R)
+  := by
+  calc
+    (map id counit) ∘ₗ comul
+      = ((unitor_right_inv A) ∘ₗ (unitor_right A)) ∘ₗ (map id counit) ∘ₗ comul
+        := by rw [unitor_right_inv_is_inv]; simp
+    _ = (unitor_right_inv A) ∘ₗ (unitor_right A) ∘ₗ (map id counit) ∘ₗ comul
+        := by simp [comp_assoc]
+    _ = (unitor_right_inv A)
+        := by rw [comul_coone]; simp
+
+lemma comul_coassoc' :
+    (map comul id : A ⊗[R] A →ₗ[R] (A ⊗[R] A) ⊗[R] A)
+    ∘ₗ (comul : A →ₗ[R] A ⊗[R] A)
+    =
+    (assoc_inv A A A : A ⊗[R] (A ⊗[R] A) →ₗ[R] (A ⊗[R] A) ⊗[R] A)
+    ∘ₗ (map id comul : A ⊗[R] A →ₗ[R] A ⊗[R] (A ⊗[R] A))
+    ∘ₗ (comul : A →ₗ[R] A ⊗[R] A)
+  := by
+  calc
+    (map comul id) ∘ₗ comul
+      = ((assoc_inv A A A) ∘ₗ (assoc A A A)) ∘ₗ (map comul id) ∘ₗ comul
+          := by rw [assoc_inv_is_inv]; simp
+    _ = (assoc_inv A A A) ∘ₗ (assoc A A A) ∘ₗ (map comul id) ∘ₗ comul
+          := by simp [comp_assoc]
+    _ = (assoc_inv A A A) ∘ₗ (map id comul) ∘ₗ comul
+          := by rw [← comul_coassoc, ←assoc]
+
+end CoalgebraTens
 
 end CoalgebraDef
 
@@ -241,16 +411,16 @@ noncomputable def mulAA {R:Type} {A:Type}
     (A ⊗[R] A) ⊗[R] (A ⊗[R] A) →ₗ[R] ((A ⊗[R] A) ⊗[R] A) ⊗[R] A
     )
   let ass2equiv := TensorProduct.assoc R A A A
-  let ass2_id := (LinearMap.rTensor A ass2equiv :
+  let ass2_id := (TensorProduct.map ass2equiv LinearMap.id:
     ((A ⊗[R] A) ⊗[R] A) ⊗[R] A →ₗ[R] (A ⊗[R] (A ⊗[R] A)) ⊗[R] A
     );
-  let ass2inv_id := (LinearMap.rTensor A (LinearEquiv.symm ass2equiv) :
+  let ass2inv_id := (TensorProduct.map (LinearEquiv.symm ass2equiv) LinearMap.id :
     (A ⊗[R] (A ⊗[R] A)) ⊗[R] A →ₗ[R] ((A ⊗[R] A) ⊗[R] A) ⊗[R] A
     );
   let swap := (TensorProduct.comm R A A :
     A ⊗[R] A →ₗ[R] A ⊗[R] A
     );
-  let id_swap_id := (LinearMap.rTensor A (LinearMap.lTensor A swap) :
+  let id_swap_id := (TensorProduct.map (TensorProduct.map LinearMap.id swap) LinearMap.id :
     (A ⊗[R] (A ⊗[R] A)) ⊗[R] A →ₗ[R] (A ⊗[R] (A ⊗[R] A)) ⊗[R] A
     );
   let mulmul := (TensorProduct.map AlgebraTens.mul AlgebraTens.mul:
@@ -283,7 +453,7 @@ theorem mulAA_tmul {R:Type} {A:Type}
 
 /- --- Bi- and Hopf algebra definition --- -/
 
-class BialgebraTens (R:Type) (A:Type)
+class BialgebraTens (R A : Type)
   [CommSemiring R]
   [AddCommMonoid A]
   [Module R A]
@@ -342,7 +512,7 @@ structure AntipodeProp {R:Type} {A:Type}
   left : -- Δ ∘ (id ⊗ S) ∘ μ
   ( mul : A ⊗[R] A →ₗ[R] A )
   ∘ₗ
-  ( LinearMap.lTensor A anti : A ⊗[R] A →ₗ[R] A ⊗[R] A )
+  ( TensorProduct.map LinearMap.id anti : A ⊗[R] A →ₗ[R] A ⊗[R] A )
   ∘ₗ
   ( comul : A →ₗ[R] A ⊗[R] A )
   =
@@ -353,7 +523,7 @@ structure AntipodeProp {R:Type} {A:Type}
   right : -- Δ ∘ (S ⊗ id) ∘ μ
   ( mul : A ⊗[R] A →ₗ[R] A )
   ∘ₗ
-  ( LinearMap.rTensor A anti : A ⊗[R] A →ₗ[R] A ⊗[R] A )
+  ( TensorProduct.map anti LinearMap.id : A ⊗[R] A →ₗ[R] A ⊗[R] A )
   ∘ₗ
   ( comul : A →ₗ[R] A ⊗[R] A )
   =
