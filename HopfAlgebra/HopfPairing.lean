@@ -47,7 +47,6 @@ theorem sq_tmul
   = (ω (a1 ⊗ₜ[R] b2)) * (ω (a2 ⊗ₜ[R] b1))
   := by
     unfold sq
-    simp [unitor_right,assoc,assoc_inv]
     simp [TensorProduct.smul_tmul]
     rw [mul_comm]
 
@@ -112,12 +111,9 @@ lemma reass_is_inv :
       =
       assoc ((A ⊗[R] A) ⊗[R] A) B (B ⊗[R] B) ∘ₗ (assoc (((A ⊗[R] A) ⊗[R] A) ⊗[R] B) B B
       ∘ₗ assoc_inv (((A ⊗[R] A) ⊗[R] A) ⊗[R] B) B B) ∘ₗ assoc_inv ((A ⊗[R] A) ⊗[R] A) B (B ⊗[R] B)
-          := by simp [comp_assoc]
+          := by simp only [comp_assoc]
       _ =
-      assoc ((A ⊗[R] A) ⊗[R] A) B (B ⊗[R] B) ∘ₗ assoc_inv ((A ⊗[R] A) ⊗[R] A) B (B ⊗[R] B)
-          := by simp [assoc_inv_is_inv']
-      _ =
-      LinearMap.id := by simp [assoc_inv_is_inv']
+      LinearMap.id := by simp
 
 noncomputable def H3r
   (C : Type)
@@ -158,7 +154,7 @@ lemma auxH3
   _ = (( map (anti ∘ₗ id) (id ∘ₗ comul) )) ∘ₗ comul := by simp
   _ = ( map anti id ) ∘ₗ ( map id comul ) ∘ₗ comul := by rw [map_comp]; simp [comp_assoc]
   _ = (( map anti (map id id) ) ∘ₗ (assoc C C C )) ∘ₗ ( map comul id ) ∘ₗ comul
-        := by rw[← comul_coassoc]; rw [← assoc]; simp [comp_assoc]
+        := by rw[← comul_coassoc]; simp [comp_assoc]
   _ = (assoc C C C) ∘ₗ ( map (map anti id) id ) ∘ₗ (map comul id ) ∘ₗ comul
         := by rw [assoc_nat]; simp [comp_assoc]
 
@@ -204,7 +200,7 @@ lemma om3aom3b
         apply TensorProduct.ext
         apply TensorProduct.ext
         ext a1 a2 a3 b1 b2 b3
-        simp [reass,assoc,assoc_inv,om3a,om3b,unitor_right]
+        simp [reass,om3a,om3b]
         simp [smul_tmul]
         simp [sq_tmul]
         ring
@@ -350,11 +346,9 @@ lemma aux_om3b
                     apply TensorProduct.ext
                     apply TensorProduct.ext
                     ext a1 a2 a3 b1 b2
-                    simp [assoc,unitor_right,sq,assoc_inv]
+                    simp [sq,assoc_inv]
           rw [this]
           simp [comp_assoc]
-          rw [assoc_inv_is_inv']
-          simp
 
 lemma init1_lhs
   {A B : Type}
@@ -377,7 +371,7 @@ lemma init1_lhs
    := by
      apply ext_fourfold'
      intro a1 a2 r b
-     simp [unitor_left,unitor_right,unit,sq_tmul,smul_tmul]
+     simp [unit,sq_tmul,smul_tmul]
      calc
        ω (a1 ⊗ₜ[R] b) * ω (a2 ⊗ₜ[R] unit r)
          = ω (a1 ⊗ₜ[R] b) * ((ω ∘ₗ (map id unit)) (a2 ⊗ₜ[R] r))
@@ -436,14 +430,14 @@ lemma init1_lhs
           := by rw [← map_comp]; simp [comp_assoc]
     _ = ω
         ∘ₗ (map ((unitor_right A) ∘ₗ ((map anti id) ∘ₗ (map id counit)) ∘ₗ comul) id)
-          := by rw [unitor_left_inv_is_inv']; rw [←map_comp, ←map_comp]; simp
+          := by rw [←map_comp, ←map_comp]; simp
     _ = ω
         ∘ₗ (map (((unitor_right A) ∘ₗ (map anti id)) ∘ₗ (map id counit) ∘ₗ comul) id)
           := by simp [comp_assoc]
     _ = ω
         ∘ₗ (map (anti ∘ₗ (unitor_right A) ∘ₗ (unitor_right_inv A)) id)
           := by rw [unitor_right_nat,comul_coone']; simp [comp_assoc]
-    _ = ω ∘ₗ ( map anti id ) := by rw [unitor_right_inv_is_inv']; simp
+    _ = ω ∘ₗ ( map anti id ) := by simp
 
 
 lemma init2_rhs
@@ -467,7 +461,7 @@ lemma init2_rhs
    := by
      apply ext_fourfold'
      intro r a b1 b2
-     simp [unitor_left,unitor_right,unit,sq_tmul,smul_tmul]
+     simp [unit,sq_tmul,smul_tmul]
      calc
        ω (unit r ⊗ₜ[R] b2) * ω (a ⊗ₜ[R] b1)
          = ((ω ∘ₗ (map unit id)) (r ⊗ₜ[R] b2)) * ω (a ⊗ₜ[R] b1)
@@ -523,14 +517,14 @@ lemma init2_rhs
           := by rw [← map_comp]; simp [comp_assoc]
     _ = ω
         ∘ₗ (map id ((unitor_right B) ∘ₗ ((map anti id) ∘ₗ (map id counit)) ∘ₗ comul))
-          := by rw [unitor_left_inv_is_inv']; rw [←map_comp, ←map_comp]; simp
+          := by rw [←map_comp, ←map_comp]; simp
     _ = ω
         ∘ₗ (map id (((unitor_right B) ∘ₗ (map anti id)) ∘ₗ (map id counit) ∘ₗ comul))
           := by simp [comp_assoc]
     _ = ω
         ∘ₗ (map id (anti ∘ₗ (unitor_right B) ∘ₗ (unitor_right_inv B)))
           := by rw [unitor_right_nat,comul_coone']; simp [comp_assoc]
-    _ = ω ∘ₗ ( map id anti ) := by rw [unitor_right_inv_is_inv']; simp
+    _ = ω ∘ₗ ( map id anti ) := by simp
 
 end PairingAntipode
 end Auxilliary
@@ -566,8 +560,8 @@ have init1_init2 : init1 = init2 :=
       := by
       calc
         assoc_inv B B B ∘ₗ assoc B B B ∘ₗ PairingAntipode.H3l B
-        = (assoc_inv B B B ∘ₗ assoc B B B) ∘ₗ PairingAntipode.H3l B := by simp [comp_assoc]
-        _ = PairingAntipode.H3l B := by rw [assoc_inv_is_inv]; simp
+        = (assoc_inv B B B ∘ₗ assoc B B B) ∘ₗ PairingAntipode.H3l B := by simp only [comp_assoc]
+        _ = PairingAntipode.H3l B := by simp
 
     simp [init1,init2]
     rw [← PairingAntipode.om3aom3b]

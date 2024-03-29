@@ -13,7 +13,7 @@ Implements the definition of a Hopf algebra. It starts with some linear algebra 
 
 `sha {K}`: Sweedler's four-dimensional Hopf algebra over a commutative ring `K`. So far contains the proof that it indeed defines a Hopf algebra, i.e. it provides <code>noncomputable instance : HopfAlgebraTens K (@sha K)</code>.
 
-TODOs: make the proofs less inelegant,implement examples alongside general theory: (co)integrals, R-matrices,... Distant future: Show that representations of Sweedler's Hopf algebra in Vect are the same as those of the symmetric algebra of a two-dimensional purely odd super-vector space in SVect.
+TODOs: make the proofs less inelegant, implement examples alongside general theory: (co)integrals, R-matrices,... Distant future: Show that representations of Sweedler's Hopf algebra in Vect are the same as those of the symmetric algebra of a two-dimensional purely odd super-vector space in SVect.
 
 ## ExampleFunctionAlgebra.lean
 
@@ -58,12 +58,14 @@ A pairing between two bialgebras `A` and `B`, which is compatible with (co)unit 
 
 `PairingAntipode`: The statement that a pairing of bialgebras automatically preserves the antipode of a Hopf algebra
 
-TODOs: Very tedious proof by coherence shuffling, more efficient method to translate string diagram equalities would make it shorter. (See `HopfPairing - Pairing preserves antipode (string diagrams).pdf` for the string diagram calculation.)
+TODOs: Very tedious proof by coherence shuffling, more efficient method to translate string diagram equalities would make it shorter. (See `HopfPairing - Pairing preserves antipode (string diagrams).pdf` for the string diagram calculation.) Further results one could try to add:
+- Show duality of the function algebra and the group algebra as an example.
+- For a non-degenerate pairing `ω : A ⊗ B → R` and `A` already a Hopf algebra, the adjoint morphisms turn `B` into a Hopf algebra.
+- Use this to define the dual of a Hopf algebra.
 
 ## Further things to try
 
 Try to implement more bits and pieces of Hopf algebras. E.g. the following would be nice: 
-- the dual is a Hopf algebra
 - Hopf modules and existence and uniqueness of (co)integrals
 - various versions of Uq(sl2)
 - R-matrices and braided monoidal structure on representation category

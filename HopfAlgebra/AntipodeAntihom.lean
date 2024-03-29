@@ -60,7 +60,7 @@ theorem Antipode_unit :
   ∘ₗ ( unitor_left H : R ⊗[R] H →ₗ[R] H ))
   ∘ₗ ( map id (anti ∘ₗ unit) : R ⊗[R] R →ₗ[R] R ⊗[R] H )
   ∘ₗ ( unitor_left_inv R : R →ₗ[R] R ⊗[R] R )
-      := by rw [unitor_left_inv_is_inv H]; simp [comp_assoc]
+      := by simp [comp_assoc]
   _ =
   (( mul : H ⊗[R] H →ₗ[R] H )
   ∘ₗ ( map unit id : R ⊗[R] H →ₗ[R] H ⊗[R] H )
@@ -68,7 +68,7 @@ theorem Antipode_unit :
   ∘ₗ ( unitor_left H : R ⊗[R] H →ₗ[R] H )
   ∘ₗ ( map id (anti ∘ₗ unit) : R ⊗[R] R →ₗ[R] R ⊗[R] H )
   ∘ₗ ( unitor_left_inv R : R →ₗ[R] R ⊗[R] R )
-      := by simp [comp_assoc]
+      := by simp only [comp_assoc]
   _ =
   (( unitor_left H : R ⊗[R] H →ₗ[R] H )
   ∘ₗ ( map id (anti ∘ₗ unit) : R ⊗[R] R →ₗ[R] R ⊗[R] H ))
@@ -81,7 +81,7 @@ theorem Antipode_unit :
       := by rw[unitor_left_nat]; simp [comp_assoc]
   _ =
   ( anti ∘ₗ unit : R →ₗ[R] H )
-    := by simp [unitor_left_inv_is_inv']
+    := by simp
 
 theorem Antipode_counit :
   (counit : H →ₗ[R] R)
@@ -135,7 +135,7 @@ theorem Antipode_counit :
   ∘ₗ ( unitor_left H : R ⊗[R] H →ₗ[R] H ))
   ∘ₗ ( map counit id : H ⊗[R] H →ₗ[R] R ⊗[R] H )
   ∘ₗ ( comul : H →ₗ[R] H ⊗[R] H )
-      := by rw [unitor_left_inv_is_inv H]; simp [comp_assoc]
+      := by simp [comp_assoc]
   _ =
   ( unitor_left R : R ⊗[R] R →ₗ[R] R )
   ∘ₗ ( map id (counit ∘ₗ anti) : R ⊗[R] H →ₗ[R] R ⊗[R] R )
@@ -143,7 +143,7 @@ theorem Antipode_counit :
   ∘ₗ (( unitor_left H : R ⊗[R] H →ₗ[R] H )
   ∘ₗ ( map counit id : H ⊗[R] H →ₗ[R] R ⊗[R] H )
   ∘ₗ ( comul : H →ₗ[R] H ⊗[R] H ))
-      := by simp [comp_assoc]
+      := by simp only [comp_assoc]
   _ =
   ( unitor_left R : R ⊗[R] R →ₗ[R] R )
   ∘ₗ ( map id (counit ∘ₗ anti) : R ⊗[R] H →ₗ[R] R ⊗[R] R )
@@ -161,7 +161,7 @@ theorem Antipode_counit :
       := by simp [comp_assoc]
   _ =
   ( counit ∘ₗ anti : H →ₗ[R] R )
-    := by simp [unitor_left_inv_is_inv']
+    := by simp
 
 /- *** Below  are only temporary attempts *** -/
 section Work_in_progress_needs_a_different_approach

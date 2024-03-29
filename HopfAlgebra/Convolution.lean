@@ -87,11 +87,11 @@ theorem convAlg_one_mul_el (f : (@convAlg R _ H _ _)) :
       _ = mul ∘ₗ (map unit f) ∘ₗ ((unitor_left_inv H)
           ∘ₗ (unitor_left H))
           ∘ₗ (map counit id) ∘ₗ comul
-            := by simp [unitor_left_inv_is_inv]
+            := by simp
       _ = mul ∘ₗ (map unit f) ∘ₗ (unitor_left_inv H)
           ∘ₗ (unitor_left H)
           ∘ₗ (map counit id) ∘ₗ comul
-            := by simp [comp_assoc]
+            := by simp only [comp_assoc]
       _ = mul ∘ₗ (map unit f) ∘ₗ (unitor_left_inv H)
             := by simp [CoalgebraTens.coone_comul]
       _ = mul ∘ₗ (map (unit ∘ₗ id) (id ∘ₗ f)) ∘ₗ (unitor_left_inv H)
@@ -104,18 +104,17 @@ theorem convAlg_one_mul_el (f : (@convAlg R _ H _ _)) :
             ∘ₗ ((unitor_left_inv H) ∘ₗ (unitor_left H))
             ∘ₗ (map id f)
             ∘ₗ (unitor_left_inv H)
-            := by simp [unitor_left_inv_is_inv]
+            := by simp
       _ = (mul ∘ₗ (map unit id)
             ∘ₗ (unitor_left_inv H)) ∘ₗ (unitor_left H)
             ∘ₗ (map id f)
             ∘ₗ (unitor_left_inv H)
-            := by simp [comp_assoc]
+            := by simp only [comp_assoc]
       _ = (unitor_left H)
             ∘ₗ (map id f)
             ∘ₗ (unitor_left_inv H)
             := by simp [AlgebraTens.one_mul]
       _ = f := by
-        simp [unitor_left,unitor_left_inv]
         apply LinearMap.ext
         intro x
         simp
@@ -135,11 +134,11 @@ theorem convAlg_mul_one_el (f : (@convAlg R _ H _ _)) :
       _ = mul ∘ₗ (map f unit) ∘ₗ ((unitor_right_inv H)
           ∘ₗ (unitor_right H))
           ∘ₗ (map id counit) ∘ₗ comul
-            := by simp [unitor_right_inv_is_inv]
+            := by simp
       _ = mul ∘ₗ (map f unit) ∘ₗ (unitor_right_inv H)
           ∘ₗ (unitor_right H)
           ∘ₗ (map id counit) ∘ₗ comul
-            := by simp [comp_assoc]
+            := by simp only [comp_assoc]
       _ = mul ∘ₗ (map f unit) ∘ₗ (unitor_right_inv H)
             := by simp [CoalgebraTens.comul_coone]
       _ = mul ∘ₗ (map (id ∘ₗ f) (unit ∘ₗ id))
@@ -153,18 +152,17 @@ theorem convAlg_mul_one_el (f : (@convAlg R _ H _ _)) :
             ∘ₗ ((unitor_right_inv H) ∘ₗ (unitor_right H))
             ∘ₗ (map f id)
             ∘ₗ (unitor_right_inv H)
-            := by simp [unitor_right_inv_is_inv]
+            := by simp
       _ = (mul ∘ₗ (map id unit)
             ∘ₗ (unitor_right_inv H)) ∘ₗ (unitor_right H)
             ∘ₗ (map f id)
             ∘ₗ (unitor_right_inv H)
-            := by simp [comp_assoc]
+            := by simp only [comp_assoc]
       _ = (unitor_right H)
             ∘ₗ (map f id)
             ∘ₗ (unitor_right_inv H)
             := by simp [AlgebraTens.mul_one]
       _ = f := by
-        simp [unitor_right,unitor_right_inv]
         apply LinearMap.ext
         intro x
         simp
@@ -206,9 +204,8 @@ theorem convAlg_mul_assoc_el (f g h: (@convAlg R _ H _ _)) :
   ∘ₗ map comul id
   ∘ₗ comul)
       := by
-        rw [assoc_inv_is_inv']
+        simp
         rw [← CoalgebraTens.comul_coassoc]
-        simp [comp_assoc,assoc]
   _ =
   (mul
   ∘ₗ map id mul
@@ -218,7 +215,7 @@ theorem convAlg_mul_assoc_el (f g h: (@convAlg R _ H _ _)) :
   ∘ₗ assoc H H H)
   ∘ₗ (map comul id
   ∘ₗ comul)
-      := by simp [comp_assoc]
+      := by simp only [comp_assoc]
   _ =
   (mul
   ∘ₗ map mul id)
@@ -229,9 +226,7 @@ theorem convAlg_mul_assoc_el (f g h: (@convAlg R _ H _ _)) :
   ∘ₗ comul)
       := by
         rw [AlgebraTens.mul_assoc]
-        nth_rw 2 [assoc]
         rw [map_map_comp_assoc_eq f g h]
-        rw [← assoc]
   _ =
   mul
   ∘ₗ map mul id
@@ -240,14 +235,14 @@ theorem convAlg_mul_assoc_el (f g h: (@convAlg R _ H _ _)) :
   ∘ₗ map (map f g) h
   ∘ₗ map comul id
   ∘ₗ comul
-      := by simp [comp_assoc]
+      := by simp only [comp_assoc]
   _ =
   mul
   ∘ₗ map mul id
   ∘ₗ map (map f g) h
   ∘ₗ map comul id
   ∘ₗ comul
-      := by rw [assoc_inv_is_inv]; simp
+      := by simp
   _ =
   mul
   ∘ₗ map (mul ∘ₗ map f g) (id ∘ₗ h)
@@ -272,13 +267,13 @@ noncomputable instance : AlgebraTens R (@convAlg R _ H _ _) where
   one_mul := by
     apply LinearMap.ext
     intro f
-    simp [unitor_left_inv,convAlg_unit]
+    simp [convAlg_unit]
     exact convAlg_one_mul_el f
 
   mul_one := by
     apply LinearMap.ext
     intro f
-    simp [unitor_right_inv,convAlg_unit]
+    simp [convAlg_unit]
     exact convAlg_mul_one_el f
 
   mul_assoc := by
