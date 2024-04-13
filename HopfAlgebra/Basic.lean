@@ -226,6 +226,108 @@ lemma mul_assoc' :
     _ = mul ∘ₗ (map mul id) ∘ₗ (assoc_inv A A A)
           := by rw [assoc,← mul_assoc]; simp [comp_assoc]
 
+variable {A R : Type}
+  [CommSemiring R] [AddCommMonoid A] [Module R A]
+  [AlgebraTens R A]
+
+namespace fromAlgebra
+
+variable {B :Type} [Semiring B] [Algebra R B]
+
+noncomputable def bilin_aux (b1:B) : B →ₗ[R] B where
+  toFun := fun b2 ↦ b1*b2
+  map_add' := by
+    intro x y
+    dsimp
+    rw [left_distrib]
+
+  map_smul' := by
+    intro r x
+    dsimp
+    -- simp also works at this point, but let's look in more detail
+    rw [Algebra.smul_def',Algebra.smul_def']
+    rw [← Semigroup.mul_assoc,← Semigroup.mul_assoc]
+    rw [Algebra.commutes']
+
+noncomputable def bilin : B →ₗ[R] (B →ₗ[R] B) where
+  toFun := fun b1 ↦ bilin_aux b1
+  map_add' := by
+    intro x y
+    dsimp
+    apply LinearMap.ext
+    intro b
+    dsimp [bilin_aux]
+    rw [right_distrib]
+
+  map_smul' := by
+    intro r x
+    dsimp
+    apply LinearMap.ext
+    intro b
+    simp [bilin_aux]
+
+noncomputable def mul : B ⊗[R] B →ₗ[R] B :=
+  TensorProduct.lift bilin
+
+noncomputable def βR : Basis (Fin 1) R R
+  := Basis.singleton (Fin 1) R
+
+noncomputable def unit : R →ₗ[R] B :=
+  Basis.constr βR R (fun (_: Fin 1) ↦ (1:B))
+
+theorem one_mul :
+    (mul : B ⊗[R] B →ₗ[R] B)
+    ∘ₗ (map unit id : R ⊗[R] B  →ₗ[R]  B ⊗[R] B)
+    ∘ₗ (unitor_left_inv B :  B →ₗ[R] (R ⊗[R] B))
+    =
+    (id : B →ₗ[R] B)
+  := by
+  apply LinearMap.ext
+  intro b
+  simp [unit,βR,mul,bilin,bilin_aux]
+
+theorem mul_one :
+    (mul : B ⊗[R] B →ₗ[R] B)
+    ∘ₗ (map id unit : B ⊗[R] R  →ₗ[R]  B ⊗[R] B)
+    ∘ₗ (unitor_right_inv B :  B →ₗ[R] (B ⊗[R] R))
+    =
+    (id : B →ₗ[R] B)
+  := by
+  apply LinearMap.ext
+  intro b
+  simp [unit,βR,mul,bilin,bilin_aux]
+
+theorem mul_assoc :
+    (mul : B ⊗[R] B →ₗ[R] B)
+    ∘ₗ (map mul id
+        : (B ⊗[R] B) ⊗[R] B →ₗ[R] (B ⊗[R] B))
+    =
+    (mul : B ⊗[R] B →ₗ[R] B)
+    ∘ₗ (map id mul
+        : B ⊗[R] (B ⊗[R] B) →ₗ[R] (B ⊗[R] B))
+    ∘ₗ (assoc B B B
+        : (B ⊗[R] B) ⊗[R] B →ₗ[R] B ⊗[R] (B ⊗[R] B))
+  := by
+  apply ext_threefold
+  intro b1 b2 b3
+  simp [mul,bilin,bilin_aux]
+  rw [Semigroup.mul_assoc b1 b2 b3]
+
+end fromAlgebra
+
+/- the required instances automatically generate
+   Module R B, see https://leanprover-community.github.io/mathlib4_docs/Mathlib/Algebra/Algebra/Basic.html#Algebra -/
+noncomputable instance fromAlgebra {B : Type}
+  [CommSemiring R]
+  [Semiring B]
+  [Algebra R B]
+  : AlgebraTens R B where
+  mul := fromAlgebra.mul
+  unit := fromAlgebra.unit
+  one_mul := fromAlgebra.one_mul
+  mul_one := fromAlgebra.mul_one
+  mul_assoc := fromAlgebra.mul_assoc
+
 end AlgebraTens
 
 end AlgebraDef

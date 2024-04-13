@@ -4,10 +4,15 @@ An attempt to implement some aspects of Hopf algebras in Lean4, including exampl
 ## Basic.lean
 
 Implements the definition of a Hopf algebra. It starts with some linear algebra helper functions (which are probably superfluous), and provides the classes:
-- `AlgebraTens R A`: Associative unital algebra on `A` over a commutative (semi-)ring `R`.
+- `AlgebraTens R A`: Associative unital algebra on `A` over a commutative (semi-)ring `R`, defined in terms of linear maps `A⊗A→A` and `R→A` for product and unit. 
 - `CoalgebraTens R A`: Dito for coalgebras.
 - `BialgebraTens R A`: Combines the previous two and adds the conditions that coproduct and counit are algebra homomorphisms.
 - `HopfAlgebraTens R A`: Adds the antipode map to a bialgebra, together with its two conditions.
+
+An instance of `AlgebraTens R B` is automatically created from the Mathlib version of an `R`-algebra `B`, i.e. from 
+`[CommSemiring R]`
+`[Semiring B]`
+`[Algebra R B]`.
 
 ## ExampleSweedler.lean
 
