@@ -35,6 +35,13 @@ TODOs: This example seems much more cumbersome than the group algebra one below,
 
 TODOs: try to show that `Fun {G} {K}` and `Alg {K} {G}` are dual to each other, ...
 
+## ExampleTensorAlgebra.lean
+
+**Work in progress**
+
+Show that the tensor algebra is a Hopf algebra. This uses `TensorAlgebra K V` from Mathlib, with `[CommRing K] [AddCommMonoid V] [Module K V]`
+
+
 ## Convolution.lean
 
 Let `H` be a Hopf algebra over a commutative (semi)ring `R`.
