@@ -1,6 +1,7 @@
 import Mathlib.LinearAlgebra.StdBasis
 import Mathlib.LinearAlgebra.TensorProduct.Basic
 import Mathlib.LinearAlgebra.TensorProduct.Basis
+import Mathlib.RingTheory.TensorProduct.Basic -- tensor product of two algebras
 
 namespace Hopf
 
@@ -63,7 +64,7 @@ theorem unitor_right_nat
     apply ext'
     simp [unitor_right]
 
-/- assoc is a proteced, so to just write "assoc", the following
+/- assoc is a protected, so to just write "assoc", the following
    seems to be an option: -/
 noncomputable abbrev assoc {R : Type} (A B C:Type)
   [CommSemiring R]
@@ -468,8 +469,24 @@ theorem mulAA_tmul {R:Type} {A:Type}
   [AlgebraTens R A] (a b c d : A) :
   mulAA ( (a ⊗ₜ[R] b) ⊗ₜ[R] (c ⊗ₜ[R] d) )
   =
-  ( AlgebraTens.mul (a ⊗ₜ[R] c) ) ⊗ₜ[R] (mul (b ⊗ₜ[R] d) )
+  ( mul (a ⊗ₜ[R] c) ) ⊗ₜ[R] (mul (b ⊗ₜ[R] d) )
   := by simp [mulAA]
+
+namespace fromAlgebra
+
+variable {R B :Type} [CommSemiring R] [Semiring B] [Algebra R B]
+
+-- show that mulAA agrees with the mathlib product on A ⊗ A
+theorem mulAA_alg : mulAA = (AlgebraTens.mul : (B ⊗[R] B) ⊗[R] (B ⊗[R] B) →ₗ[R] B ⊗[R] B)
+  := by
+  apply TensorProduct.ext_fourfold'
+  intro a b c d
+  rw [mulAA_tmul]
+  simp [AlgebraTens.mul,fromAlgebra.mul,
+    fromAlgebra.bilin,fromAlgebra.bilin_aux]
+
+end fromAlgebra
+
 
 /- --- Bi- and Hopf algebra definition --- -/
 

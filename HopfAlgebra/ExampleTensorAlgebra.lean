@@ -3,6 +3,7 @@ import Mathlib.LinearAlgebra.TensorProduct.Basic
 import Mathlib.LinearAlgebra.TensorAlgebra.Basic
 import Mathlib.RingTheory.TensorProduct.Basic -- tensor product of two algebras
 import Mathlib.Algebra.Algebra.Hom
+import Mathlib.Algebra.Algebra.Equiv
 import HopfAlgebra.Basic
 
 open BigOperators
@@ -92,6 +93,7 @@ theorem TA_coone_comul :
     (id : (TensorAlgebra K V) →ₗ[K] (TensorAlgebra K V))
   := by
 
+  -- QUESTION: Why is there no ∘ₐ? Or am I missing something?
   let lhs_alghom :=
     AlgHom.comp
     (unitor_left_alghom K (TensorAlgebra K V) : K ⊗[K] (TensorAlgebra K V) →ₐ[K] (TensorAlgebra K V))
@@ -139,18 +141,161 @@ theorem TA_coone_comul :
     _ = LinearMap.id := by rw [rhs_lin]
 
 
+theorem TA_comul_coone :
+    (unitor_right (TensorAlgebra K V) :  (TensorAlgebra K V) ⊗[K] K →ₗ[K] (TensorAlgebra K V))
+    ∘ₗ (map id TA_counit : (TensorAlgebra K V) ⊗[K] (TensorAlgebra K V)  →ₗ[K]  (TensorAlgebra K V) ⊗[K] K)
+    ∘ₗ (TA_comul : (TensorAlgebra K V) →ₗ[K] (TensorAlgebra K V) ⊗[K] (TensorAlgebra K V))
+    =
+    (id : (TensorAlgebra K V) →ₗ[K] (TensorAlgebra K V))
+  := by
+  sorry
+
+theorem TA_comul_coassoc :
+    (assoc (TensorAlgebra K V) (TensorAlgebra K V) (TensorAlgebra K V)
+        : ((TensorAlgebra K V) ⊗[K] (TensorAlgebra K V)) ⊗[K] (TensorAlgebra K V) →ₗ[K] (TensorAlgebra K V) ⊗[K] ((TensorAlgebra K V) ⊗[K] (TensorAlgebra K V)))
+    ∘ₗ (map TA_comul id
+        : (TensorAlgebra K V) ⊗[K] (TensorAlgebra K V) →ₗ[K] ((TensorAlgebra K V) ⊗[K] (TensorAlgebra K V)) ⊗[K] (TensorAlgebra K V))
+    ∘ₗ (TA_comul : (TensorAlgebra K V) →ₗ[K] (TensorAlgebra K V) ⊗[K] (TensorAlgebra K V))
+    =
+    (map id TA_comul
+        : (TensorAlgebra K V) ⊗[K] (TensorAlgebra K V) →ₗ[K] (TensorAlgebra K V) ⊗[K] ((TensorAlgebra K V) ⊗[K] (TensorAlgebra K V)))
+    ∘ₗ (TA_comul : (TensorAlgebra K V) →ₗ[K] (TensorAlgebra K V) ⊗[K] (TensorAlgebra K V))
+  := by
+
+  let lhs_alghom :=
+    AlgHom.comp
+    (Algebra.TensorProduct.assoc K (TensorAlgebra K V) (TensorAlgebra K V) (TensorAlgebra K V)
+        : ((TensorAlgebra K V) ⊗[K] (TensorAlgebra K V)) ⊗[K] (TensorAlgebra K V) →ₐ[K] (TensorAlgebra K V) ⊗[K] ((TensorAlgebra K V) ⊗[K] (TensorAlgebra K V)))
+    (AlgHom.comp
+      (Algebra.TensorProduct.map TA_comul_alghom (AlgHom.id K (TensorAlgebra K V))
+        : (TensorAlgebra K V) ⊗[K] (TensorAlgebra K V) →ₐ[K] ((TensorAlgebra K V) ⊗[K] (TensorAlgebra K V)) ⊗[K] (TensorAlgebra K V))
+      (TA_comul_alghom : (TensorAlgebra K V) →ₐ[K] (TensorAlgebra K V) ⊗[K] (TensorAlgebra K V))
+    )
+
+  let rhs_alghom :=
+    AlgHom.comp
+    (Algebra.TensorProduct.map (AlgHom.id K (TensorAlgebra K V)) TA_comul_alghom
+        : (TensorAlgebra K V) ⊗[K] (TensorAlgebra K V) →ₐ[K] (TensorAlgebra K V) ⊗[K] ((TensorAlgebra K V) ⊗[K] (TensorAlgebra K V)))
+    (TA_comul_alghom : (TensorAlgebra K V) →ₐ[K] (TensorAlgebra K V) ⊗[K] (TensorAlgebra K V))
+
+  have : (AlgHom.toLinearMap lhs_alghom) ∘ₗ (TensorAlgebra.ι K)
+          = (AlgHom.toLinearMap rhs_alghom) ∘ₗ (TensorAlgebra.ι K)
+    := by
+    apply LinearMap.ext
+    intro v
+    simp [lhs_alghom,rhs_alghom,
+      TA_comul_alghom,TA_comul_aux]
+    simp [AlgebraTens.unit,AlgebraTens.fromAlgebra.unit,AlgebraTens.fromAlgebra.βR]
+    rw [TensorProduct.add_tmul]
+    rw [TensorProduct.tmul_add]
+    rw [Algebra.TensorProduct.one_def]
+    simp
+    rw [add_assoc]
+
+  have same_hom : lhs_alghom = rhs_alghom := TensorAlgebra.hom_ext this
+
+  have same_assoc :
+    AlgEquiv.toLinearMap (Algebra.TensorProduct.assoc K (TensorAlgebra K V) (TensorAlgebra K V) (TensorAlgebra K V))
+    = assoc (TensorAlgebra K V) (TensorAlgebra K V) (TensorAlgebra K V)
+    := by
+    apply TensorProduct.ext_threefold
+    simp
+
+  have lhs_lin :
+        AlgHom.toLinearMap lhs_alghom
+        = (assoc (TensorAlgebra K V) (TensorAlgebra K V) (TensorAlgebra K V))
+          ∘ₗ (map TA_comul id) ∘ₗ TA_comul
+    := by
+    simp [lhs_alghom]
+    simp [TA_comul]
+    rw [AlgebraTensorLinearTensor]
+    rw [same_assoc]
+    exact rfl
+
+  have rhs_lin :
+        AlgHom.toLinearMap rhs_alghom
+        = (map id TA_comul) ∘ₗ TA_comul
+    := by
+    simp [rhs_alghom]
+    simp [TA_comul]
+    rw [AlgebraTensorLinearTensor]
+    simp
+
+  calc
+    (assoc (TensorAlgebra K V) (TensorAlgebra K V) (TensorAlgebra K V))
+    ∘ₗ (map TA_comul id) ∘ₗ TA_comul
+      = AlgHom.toLinearMap lhs_alghom := by rw [lhs_lin]
+    _ = AlgHom.toLinearMap rhs_alghom := by rw [same_hom]
+    _ = (map id TA_comul) ∘ₗ TA_comul := by rw [rhs_lin]
+
+
 noncomputable instance : CoalgebraTens K (TensorAlgebra K V) where
   comul := TA_comul
   counit := TA_counit
   coone_comul := TA_coone_comul
-  comul_coone := sorry
-  comul_coassoc := sorry
+  comul_coone := TA_comul_coone
+  comul_coassoc := TA_comul_coassoc
+
+theorem TA_comul_mul :
+  ( mulAA : ((TensorAlgebra K V) ⊗[K] (TensorAlgebra K V)) ⊗[K] ((TensorAlgebra K V) ⊗[K] (TensorAlgebra K V)) →ₗ[K] (TensorAlgebra K V) ⊗[K] (TensorAlgebra K V) )
+  ∘ₗ
+  ( map CoalgebraTens.comul CoalgebraTens.comul : (TensorAlgebra K V) ⊗[K] (TensorAlgebra K V) →ₗ[K] ((TensorAlgebra K V) ⊗[K] (TensorAlgebra K V)) ⊗[K] ((TensorAlgebra K V) ⊗[K] (TensorAlgebra K V)) )
+  =
+  ( CoalgebraTens.comul : (TensorAlgebra K V) →ₗ[K] (TensorAlgebra K V) ⊗[K] (TensorAlgebra K V) )
+  ∘ₗ
+  ( AlgebraTens.mul : (TensorAlgebra K V) ⊗[K] (TensorAlgebra K V) →ₗ[K] (TensorAlgebra K V))
+  := by
+  rw [fromAlgebra.mulAA_alg]
+  apply TensorProduct.ext'
+  intro a b
+  simp [AlgebraTens.mul,
+    AlgebraTens.fromAlgebra.mul,
+    AlgebraTens.fromAlgebra.bilin,
+    AlgebraTens.fromAlgebra.bilin_aux]
+  simp [CoalgebraTens.comul]
+  simp [TA_comul]
+
+theorem TA_comul_unit :
+  ( CoalgebraTens.comul : (TensorAlgebra K V) →ₗ[K] (TensorAlgebra K V) ⊗[K] (TensorAlgebra K V) )
+  ∘ₗ
+  ( AlgebraTens.unit : K →ₗ[K] (TensorAlgebra K V) )
+  =
+  ( (map AlgebraTens.unit AlgebraTens.unit) : K ⊗[K] K →ₗ[K] (TensorAlgebra K V) ⊗[K] (TensorAlgebra K V) )
+  ∘ₗ
+  ( unitor_left_inv K : K →ₗ[K] K⊗[K] K )
+  := by
+  ext
+  dsimp [CoalgebraTens.comul,AlgebraTens.unit]
+  simp [AlgebraTens.fromAlgebra.unit,AlgebraTens.fromAlgebra.βR]
+  simp [TA_comul]
+  rw [Algebra.TensorProduct.one_def]
+
+theorem TA_counit_mul :
+  ( CoalgebraTens.counit : (TensorAlgebra K V) →ₗ[K] K )
+  ∘ₗ
+  ( AlgebraTens.mul : (TensorAlgebra K V) ⊗[K] (TensorAlgebra K V) →ₗ[K] (TensorAlgebra K V))
+  =
+  ( unitor_left K : K ⊗[K] K →ₗ[K] K )
+  ∘ₗ
+  ( (map CoalgebraTens.counit CoalgebraTens.counit) : (TensorAlgebra K V) ⊗[K] (TensorAlgebra K V) →ₗ[K] K ⊗[K] K )
+  := by
+  sorry
+
+theorem TA_counit_unit :
+  ( counit : (TensorAlgebra K V) →ₗ[K] K )
+  ∘ₗ
+  ( unit : K →ₗ[K] (TensorAlgebra K V) )
+  =
+  ( id : K →ₗ[K] K )
+  := by
+  sorry
+
 
 noncomputable instance : BialgebraTens K (TensorAlgebra K V) where
-  comul_mul := sorry
-  comul_unit := sorry
-  counit_mul := sorry
-  counit_unit := sorry
+  comul_mul := TA_comul_mul
+  comul_unit := TA_comul_unit
+  counit_mul := TA_counit_mul
+  counit_unit := TA_counit_unit
 
 noncomputable def TA_anti_aux : V →ₗ[K] TensorAlgebra K V
   := - TensorAlgebra.ι K
