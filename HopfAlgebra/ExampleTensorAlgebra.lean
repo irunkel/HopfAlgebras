@@ -64,6 +64,24 @@ theorem unitor_left_alghom_lin
   intro r b
   simp
 
+noncomputable def unitor_right_alghom (R B : Type)
+  [CommSemiring R] [Semiring B] [Algebra R B]
+  :
+  B ⊗[R] R →ₐ[R] B
+  := (Algebra.TensorProduct.rid R R B : B ⊗[R] R →ₐ[R] B)
+
+theorem unitor_right_alghom_lin
+  {R B : Type}
+  [CommSemiring R] [Semiring B] [Algebra R B]
+  :
+  AlgHom.toLinearMap (unitor_right_alghom R B) = unitor_right B
+  :=
+  by
+  simp [unitor_right_alghom,unitor_left]
+  apply TensorProduct.ext'
+  intro r b
+  simp
+
 /- QUESTION: Is this theorem already somewhere? I could not see
    it in Mathlib.RingTheory.TensorProduct.Basic -/
 theorem AlgebraTensorLinearTensor
@@ -148,7 +166,52 @@ theorem TA_comul_coone :
     =
     (id : (TensorAlgebra K V) →ₗ[K] (TensorAlgebra K V))
   := by
-  sorry
+  let lhs_alghom :=
+    AlgHom.comp
+    (unitor_right_alghom K (TensorAlgebra K V) : (TensorAlgebra K V) ⊗[K] K →ₐ[K] (TensorAlgebra K V))
+    (AlgHom.comp
+      (Algebra.TensorProduct.map (AlgHom.id K _) TA_counit_alghom : (TensorAlgebra K V) ⊗[K] (TensorAlgebra K V) →ₐ[K] (TensorAlgebra K V) ⊗[K] K)
+      (TA_comul_alghom : (TensorAlgebra K V) →ₐ[K] (TensorAlgebra K V) ⊗[K] (TensorAlgebra K V))
+    )
+
+  let rhs_alghom :=
+    (AlgHom.id K (TensorAlgebra K V) : (TensorAlgebra K V) →ₐ[K] (TensorAlgebra K V))
+
+  have : (AlgHom.toLinearMap lhs_alghom) ∘ₗ (TensorAlgebra.ι K)
+          = (AlgHom.toLinearMap rhs_alghom) ∘ₗ (TensorAlgebra.ι K)
+    := by
+    apply LinearMap.ext
+    intro v
+    simp [lhs_alghom,rhs_alghom,
+      TA_comul_alghom,TA_comul_aux]
+    simp [AlgebraTens.unit,AlgebraTens.fromAlgebra.unit,AlgebraTens.fromAlgebra.βR]
+    simp [TA_counit_alghom,TA_counit_aux]
+    simp [unitor_right_alghom]
+
+  have same_hom : lhs_alghom = rhs_alghom := TensorAlgebra.hom_ext this
+
+  have lhs_lin :
+        AlgHom.toLinearMap lhs_alghom
+        = (unitor_right (TensorAlgebra K V)) ∘ₗ (map id TA_counit) ∘ₗ TA_comul
+    := by
+    simp [lhs_alghom]
+    rw [unitor_right_alghom_lin]
+    simp [TA_comul]
+    rw [AlgebraTensorLinearTensor]
+    simp [TA_counit]
+
+  have rhs_lin :
+        AlgHom.toLinearMap rhs_alghom
+        = LinearMap.id
+    := by
+    simp [rhs_alghom]
+
+  calc
+    unitor_right (TensorAlgebra K V) ∘ₗ TensorProduct.map LinearMap.id TA_counit ∘ₗ TA_comul
+      = AlgHom.toLinearMap lhs_alghom := by rw [← lhs_lin]
+    _ = AlgHom.toLinearMap rhs_alghom := by rw [same_hom]
+    _ = LinearMap.id := by rw [rhs_lin]
+
 
 theorem TA_comul_coassoc :
     (assoc (TensorAlgebra K V) (TensorAlgebra K V) (TensorAlgebra K V)
@@ -279,17 +342,25 @@ theorem TA_counit_mul :
   ∘ₗ
   ( (map CoalgebraTens.counit CoalgebraTens.counit) : (TensorAlgebra K V) ⊗[K] (TensorAlgebra K V) →ₗ[K] K ⊗[K] K )
   := by
-  sorry
+  apply TensorProduct.ext'
+  intro x y
+  simp [CoalgebraTens.counit, TA_counit]
+  dsimp [AlgebraTens.mul,AlgebraTens.fromAlgebra.mul,
+    AlgebraTens.fromAlgebra.bilin,AlgebraTens.fromAlgebra.bilin_aux]
+  simp
 
 theorem TA_counit_unit :
-  ( counit : (TensorAlgebra K V) →ₗ[K] K )
+  ( CoalgebraTens.counit : (TensorAlgebra K V) →ₗ[K] K )
   ∘ₗ
-  ( unit : K →ₗ[K] (TensorAlgebra K V) )
+  ( AlgebraTens.unit : K →ₗ[K] (TensorAlgebra K V) )
   =
   ( id : K →ₗ[K] K )
   := by
-  sorry
-
+  ext
+  simp [AlgebraTens.unit,AlgebraTens.fromAlgebra.unit,
+    AlgebraTens.fromAlgebra.βR]
+  simp [CoalgebraTens.counit,TA_counit,
+    TA_counit_alghom,TA_counit_aux]
 
 noncomputable instance : BialgebraTens K (TensorAlgebra K V) where
   comul_mul := TA_comul_mul
@@ -297,14 +368,31 @@ noncomputable instance : BialgebraTens K (TensorAlgebra K V) where
   counit_mul := TA_counit_mul
   counit_unit := TA_counit_unit
 
-noncomputable def TA_anti_aux : V →ₗ[K] TensorAlgebra K V
-  := - TensorAlgebra.ι K
+/- TODO: B and B^mop are the same as a K-module, but I am not
+   sure how to make Lean see that at the moment. Ideally there
+   would be a way without AlgMopId (which I also still need to
+   think about how to define).
+   For the proof it might be good to first implement Prop 8 on
+   p.16 of
+   Klimyk,Schmudgen, Quantum groups and their representations
+    (Springer 1997)
+-/
+noncomputable def AlgMopId
+  (R B : Type)
+  [CommSemiring R] [Semiring B] [Algebra R B]
+  :
+  B ≃ₗ[R] Bᵐᵒᵖ
+  := sorry
 
-noncomputable def TA_anti_alghom : (TensorAlgebra K V) →ₐ[K] (TensorAlgebra K V)
-  := TensorAlgebra.lift K (TA_anti_aux : V →ₗ[K] (TensorAlgebra K V))
+noncomputable def TA_anti_aux : V →ₗ[K] (TensorAlgebra K V)ᵐᵒᵖ
+  := (AlgMopId K (TensorAlgebra K V) : TensorAlgebra K V →ₗ[K] (TensorAlgebra K V)ᵐᵒᵖ )∘ₗ (- TensorAlgebra.ι K)
+
+noncomputable def TA_anti_alghom : (TensorAlgebra K V) →ₐ[K] (TensorAlgebra K V)ᵐᵒᵖ
+  := TensorAlgebra.lift K (TA_anti_aux : V →ₗ[K] (TensorAlgebra K V)ᵐᵒᵖ)
 
 noncomputable def TA_anti : (TensorAlgebra K V) →ₗ[K] (TensorAlgebra K V)
-  := AlgHom.toLinearMap TA_anti_alghom
+  := ( (AlgMopId K (TensorAlgebra K V)).symm : (TensorAlgebra K V)ᵐᵒᵖ →ₗ[K] TensorAlgebra K V )
+     ∘ₗ (AlgHom.toLinearMap TA_anti_alghom)
 
 noncomputable instance : HopfAlgebraTens K (TensorAlgebra K V) where
   anti := TA_anti

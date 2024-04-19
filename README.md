@@ -25,7 +25,7 @@ TODOs: make the proofs less inelegant, implement examples alongside general theo
 `Fun {G} {K}`: The Hopf algebra of functions `G → K`. 
 Here `G` is a finite group, `K` is a commutative Ring, and the group structure enters the definition of the coproduct, but not that of the product. The file provides <code>noncomputable instance : HopfAlgebraTens K (@Fun G K)</code>.
 
-There is also an explict example for the group `C2` of two elements, written multiplicatively. (I tried to make this work via `Multiplicative (Fin 2)`, but failed, so now there is a multiplicative `C2` defines from scratch.)
+There is also an explict example for the group `C2` of two elements, written multiplicatively. (I tried to make this work via `Multiplicative (Fin 2)`, but failed, so now there is a multiplicative `C2` defined from scratch.)
 
 TODOs: This example seems much more cumbersome than the group algebra one below, try to improve the proofs.
 
@@ -39,7 +39,8 @@ TODOs: try to show that `Fun {G} {K}` and `Alg {K} {G}` are dual to each other, 
 
 **Work in progress**
 
-Show that the tensor algebra is a Hopf algebra. This uses `TensorAlgebra K V` from Mathlib, with `[CommRing K] [AddCommMonoid V] [Module K V]`
+Show that the tensor algebra is a Hopf algebra. This uses `TensorAlgebra K V` from Mathlib, with `[CommRing K] [AddCommMonoid V] [Module K V]`.
+So far it provides instances up to `BialgebraTens K (TensorAlgebra K V)` but not yet for `HopfAlgebraTens` as I am stuck on the antipode definition and property.
 
 
 ## Convolution.lean
